@@ -14,14 +14,8 @@ sudo apt install -y nodejs
 echo "==> Installation PM2"
 sudo npm install -g pm2
 
-echo "==> Installation Chrome/Chromium pour Puppeteer"
-if ! sudo apt install -y chromium-browser; then
-  echo "chromium-browser indisponible, installation de google-chrome-stable..."
-  curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
-  sudo apt update
-  sudo apt install -y google-chrome-stable
-fi
+echo "==> Dependances Chrome / Puppeteer (WhatsApp)"
+bash "$(dirname "$0")/install-chrome-deps.sh"
 
 echo "==> Installation Ollama"
 curl -fsSL https://ollama.com/install.sh | sh

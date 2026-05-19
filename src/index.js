@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const qrcode = require("qrcode-terminal");
 const { Client, LocalAuth } = require("whatsapp-web.js");
@@ -8,18 +8,18 @@ const { handlePollVote } = require("./modules/poll");
 const { startBackgroundJobs } = require("./jobs/queue");
 const { startScheduler } = require("./scheduler/cron");
 const { warnIfInvalidGroupId, logGroupDirectory } = require("./modules/groups");
+const { buildPuppeteerOptions } = require("./utils/chromium");
+
+const { options: puppeteerOptions, executablePath } = buildPuppeteerOptions();
+if (executablePath) {
+  console.log(`Navigateur WhatsApp: ${executablePath}`);
+} else {
+  console.log("Navigateur WhatsApp: Chrome embarque Puppeteer (~/.cache/puppeteer)");
+}
 
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  }
+  puppeteer: puppeteerOptions
 });
 
 function registerClientEvents() {
@@ -102,6 +102,13 @@ async function bootstrap() {
       console.error("→ Une ancienne session Chrome est encore ouverte.");
       console.error("→ Lancez:  bash scripts/stop-bot.sh");
       console.error("→ Puis:    npm run dev");
+    }
+
+    if (message.includes("libatk") || message.includes("Failed to launch the browser")) {
+      console.error("");
+      console.error("→ Dependances Chrome manquantes sur le serveur.");
+      console.error("→ Lancez:  bash scripts/install-chrome-deps.sh");
+      console.error("→ Puis:    pm2 restart football-bot");
     }
   }
 }
