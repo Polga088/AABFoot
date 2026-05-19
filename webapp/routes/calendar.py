@@ -437,29 +437,111 @@ def update_match(match_id):
     return jsonify({"success": True})
 
 
+def _clear_poll_in_db(conn, match_id, keep_message_id_for_bot=False):
+    if keep_message_id_for_bot:
+        conn.execute(
+            """
+            UPDATE matches
+            SET poll_sent_at = NULL,
+                poll_requested_at = NULL,
+                poll_republish_requested_at = NULL,
+                poll_delete_requested_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (match_id,),
+        )
+        return
+
+    conn.execute(
+        """
+        UPDATE matches
+        SET poll_message_id = NULL,
+            poll_sent_at = NULL,
+            poll_requested_at = NULL,
+            poll_delete_requested_at = NULL,
+            poll_republish_requested_at = NULL
+        WHERE id = ?
+        """,
+        (match_id,),
+    )
+
+
+def _delete_match_cascade(conn, match_id):
+    conn.execute("DELETE FROM availabilities WHERE match_id = ?", (match_id,))
+    conn.execute("DELETE FROM lineups WHERE match_id = ?", (match_id,))
+    try:
+        conn.execute("DELETE FROM match_media WHERE match_id = ?", (match_id,))
+    except Exception:
+        pass
+    conn.execute("DELETE FROM matches WHERE id = ?", (match_id,))
+
+
 @calendar_bp.route("/calendrier/<int:match_id>/poll/delete", methods=["POST"])
 def request_poll_delete(match_id):
     denied = admin_guard()
     if denied:
         return denied
 
+    payload = request.get_json(silent=True) or {}
+    local_only = str(payload.get("local_only", "")).lower() in ("1", "true", "yes", "on")
+
     conn = current_app.get_db_connection()
-    match = conn.execute("SELECT id, poll_message_id FROM matches WHERE id = ?", (match_id,)).fetchone()
+    match = conn.execute(
+        "SELECT id, poll_message_id FROM matches WHERE id = ?",
+        (match_id,),
+    ).fetchone()
     if not match:
         conn.close()
         return jsonify({"success": False, "error": "match_not_found"}), 404
 
-    conn.execute(
-        """
-        UPDATE matches
-        SET poll_delete_requested_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        """,
-        (match_id,),
-    )
+    had_whatsapp_poll = bool(match["poll_message_id"])
+    if local_only or not had_whatsapp_poll:
+        _clear_poll_in_db(conn, match_id, keep_message_id_for_bot=False)
+        conn.commit()
+        conn.close()
+        return jsonify(
+            {
+                "success": True,
+                "cleared_local": True,
+                "whatsapp_queued": False,
+                "message": "Sondage retire du calendrier (base de donnees).",
+            }
+        )
+
+    _clear_poll_in_db(conn, match_id, keep_message_id_for_bot=True)
     conn.commit()
     conn.close()
-    return jsonify({"success": True, "delete_queued": True})
+    return jsonify(
+        {
+            "success": True,
+            "cleared_local": True,
+            "whatsapp_queued": True,
+            "message": "Calendrier mis a jour. Le bot supprimera le message WhatsApp a la reconnexion.",
+        }
+    )
+
+
+@calendar_bp.route("/calendrier/<int:match_id>", methods=["DELETE"])
+def delete_match(match_id):
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    match = conn.execute("SELECT id FROM matches WHERE id = ?", (match_id,)).fetchone()
+    if not match:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    _delete_match_cascade(conn, match_id)
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "message": "Evenement supprime du calendrier.",
+        }
+    )
 
 
 @calendar_bp.route("/calendrier/<int:match_id>/poll/republish", methods=["POST"])

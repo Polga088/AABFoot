@@ -98,12 +98,33 @@ async function handleEventAction(button) {
       );
     }
 
-    if (action === "poll-delete") {
-      if (!window.confirm("Supprimer le sondage WhatsApp de ce match ?")) return;
-      setFeedback(feedback, "Suppression en cours...");
-      await postJson(`/calendrier/${matchId}/poll/delete`);
-      setFeedback(feedback, "Suppression en file d'attente (~20 s).");
-      setTimeout(() => window.location.reload(), 2000);
+    if (action === "poll-delete-local") {
+      const ok = window.confirm(
+        "Retirer le sondage du calendrier ?\n\n" +
+          "• Fonctionne sans WhatsApp connecte.\n" +
+          "• Le message peut rester dans le groupe jusqu'a reconnexion du bot."
+      );
+      if (!ok) return;
+      setFeedback(feedback, "Suppression locale...");
+      const result = await postJson(`/calendrier/${matchId}/poll/delete`, { local_only: true });
+      setFeedback(feedback, result.message || "Sondage retire.");
+      setTimeout(() => window.location.reload(), 800);
+    }
+
+    if (action === "delete-event") {
+      const ok = window.confirm(
+        "Supprimer cet evenement du calendrier ?\nDisponibilites et lineup associes seront effaces."
+      );
+      if (!ok) return;
+      setFeedback(feedback, "Suppression...");
+      const res = await fetch(`/calendrier/${matchId}`, {
+        method: "DELETE",
+        headers: adminHeaders()
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      setFeedback(feedback, data.message || "Evenement supprime.");
+      setTimeout(() => window.location.reload(), 800);
     }
 
     if (action === "poll-republish") {

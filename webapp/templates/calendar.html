@@ -188,8 +188,9 @@
       <button type="button" class="btn btn-sm" data-action="poll" data-match-id="{{ event.id }}">Publier sondage</button>
       {% else %}
       <button type="button" class="btn btn-sm" data-action="poll-republish" data-match-id="{{ event.id }}">Republier sondage</button>
-      <button type="button" class="btn btn-sm btn-danger" data-action="poll-delete" data-match-id="{{ event.id }}">Supprimer sondage</button>
+      <button type="button" class="btn btn-sm btn-danger" data-action="poll-delete-local" data-match-id="{{ event.id }}">Retirer sondage</button>
       {% endif %}
+      <button type="button" class="btn btn-sm btn-danger" data-action="delete-event" data-match-id="{{ event.id }}">Supprimer événement</button>
       <button type="button" class="btn btn-sm" data-action="lineup" data-match-id="{{ event.id }}">Générer lineup</button>
       <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
     </div>
