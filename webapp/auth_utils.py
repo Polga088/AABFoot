@@ -81,10 +81,9 @@ def find_player_by_phone(conn, raw_phone):
 def player_display_name(player_row):
     if not player_row:
         return ""
-    first = (player_row["first_name"] or "").strip() if "first_name" in player_row.keys() else ""
-    last = (player_row["last_name"] or "").strip() if "last_name" in player_row.keys() else ""
-    full = f"{first} {last}".strip()
-    return full or (player_row["name"] or "Joueur")
+    from player_utils import player_id_label
+
+    return player_id_label(player_row)
 
 
 def is_authenticated():

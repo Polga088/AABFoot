@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, current_app, redirect, render_template, url_for
 
 from auth_utils import login_required, logout_player, mask_phone
+from player_utils import player_id_label
 
 
 wallet_bp = Blueprint("wallet", __name__, url_prefix="/")
@@ -153,10 +154,8 @@ def wallet_dashboard():
 
     conn.close()
 
-    first = (player["first_name"] or "").strip() if player["first_name"] else ""
-    last = (player["last_name"] or "").strip() if player["last_name"] else ""
-    player_name = f"{first} {last}".strip() or (player["name"] or "")
-    initials = "".join(part[:1] for part in player_name.split() if part).upper()[:2] or "??"
+    player_name = player_id_label(player)
+    initials = f"#{player['id']}"[-2:] if player["id"] else "??"
     masked_phone = mask_phone(player["phone"] or "")
 
     return render_template(

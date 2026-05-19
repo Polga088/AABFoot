@@ -34,8 +34,6 @@ document.getElementById("playerForm")?.addEventListener("submit", async (event) 
       method: "POST",
       headers: adminHeaders(),
       body: JSON.stringify({
-        first_name: form.first_name.value.trim(),
-        last_name: form.last_name.value.trim(),
         phone: form.phone.value.trim(),
         initial_balance: Number(form.initial_balance.value || 0)
       })
@@ -54,11 +52,10 @@ document.querySelectorAll(".btn-edit-player").forEach((btn) => {
     const player = playersById.get(String(btn.dataset.playerId));
     if (!player) return;
 
-    const first = window.prompt("Prenom", player.first_name || player.name);
-    if (first === null) return;
-    const last = window.prompt("Nom", player.last_name || "");
-    if (last === null) return;
-    const phone = window.prompt("Telephone", (player.phone || "").replace("@c.us", ""));
+    const phone = window.prompt(
+      `Telephone pour le joueur #${player.id}`,
+      (player.phone || "").replace("@c.us", "")
+    );
     if (phone === null) return;
 
     try {
@@ -66,8 +63,6 @@ document.querySelectorAll(".btn-edit-player").forEach((btn) => {
         method: "PUT",
         headers: adminHeaders(),
         body: JSON.stringify({
-          first_name: first.trim(),
-          last_name: (last || "").trim(),
           phone: phone.trim(),
           active: true
         })

@@ -14,19 +14,10 @@
   <p id="playersPageFeedback" class="form-feedback" aria-live="polite"></p>
 
   <form id="playerForm" class="event-form">
+    <p class="metric-sub">Chaque joueur reçoit un identifiant automatique (#1, #2, …) à la création.</p>
     <div class="form-row form-row-2">
       <div>
-        <label class="form-label" for="firstName">Prénom</label>
-        <input id="firstName" name="first_name" class="form-input" required>
-      </div>
-      <div>
-        <label class="form-label" for="lastName">Nom</label>
-        <input id="lastName" name="last_name" class="form-input">
-      </div>
-    </div>
-    <div class="form-row form-row-2">
-      <div>
-        <label class="form-label" for="playerPhone">Téléphone</label>
+        <label class="form-label" for="playerPhone">Téléphone WhatsApp</label>
         <input id="playerPhone" name="phone" class="form-input" placeholder="212612345678" required>
       </div>
       <div>
@@ -47,8 +38,7 @@
     <table>
       <thead>
         <tr>
-          <th>Prénom</th>
-          <th>Nom</th>
+          <th>ID</th>
           <th>Téléphone</th>
           <th>Solde</th>
           <th>Statut</th>
@@ -58,8 +48,7 @@
       <tbody id="playersTableBody">
         {% for p in players %}
         <tr data-player-id="{{ p.id }}" class="{{ 'row-inactive' if not p.active }}">
-          <td>{{ p.first_name or p.name }}</td>
-          <td>{{ p.last_name or '' }}</td>
+          <td><strong>#{{ p.id }}</strong></td>
           <td>{{ p.phone }}</td>
           <td>{{ "%.2f"|format(p.balance) }} dh</td>
           <td>
@@ -81,7 +70,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="metric-sub">Aucun joueur.</td></tr>
+        <tr><td colspan="5" class="metric-sub">Aucun joueur.</td></tr>
         {% endfor %}
       </tbody>
     </table>

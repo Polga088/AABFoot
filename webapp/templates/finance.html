@@ -22,7 +22,7 @@
           <option value="">Choisir...</option>
           {% for p in players %}
           {% if p.active %}
-          <option value="{{ p.id }}">{{ p.first_name or p.name }} {{ p.last_name or '' }} ({{ "%.2f"|format(p.balance) }} dh)</option>
+          <option value="{{ p.id }}">#{{ p.id }} — {{ p.phone }} ({{ "%.2f"|format(p.balance) }} dh)</option>
           {% endif %}
           {% endfor %}
         </select>
@@ -53,7 +53,7 @@
     <div class="form-row">
       <label class="form-label" for="importFile">Importer un fichier CSV</label>
       <input id="importFile" type="file" accept=".csv" class="form-input" required>
-      <p class="metric-sub">Colonnes : phone, first_name, last_name, amount (ou prenom, nom, telephone, montant)</p>
+      <p class="metric-sub">Colonnes CSV : phone, amount (ou telephone, montant). L’ID joueur est attribué automatiquement.</p>
     </div>
     <button type="submit" class="btn btn-primary">Importer</button>
     <p id="importFeedback" class="form-feedback"></p>
@@ -65,12 +65,12 @@
   <div class="wallet-table-wrap">
     <table>
       <thead>
-        <tr><th>Joueur</th><th>Téléphone</th><th>Solde</th></tr>
+        <tr><th>ID</th><th>Téléphone</th><th>Solde</th></tr>
       </thead>
       <tbody>
         {% for p in players %}
         <tr>
-          <td>{{ p.first_name or p.name }} {{ p.last_name or '' }}</td>
+          <td><strong>#{{ p.id }}</strong></td>
           <td>{{ p.phone }}</td>
           <td class="{% if p.balance >= 10 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(p.balance) }} dh</td>
         </tr>
@@ -85,12 +85,12 @@
   <div class="wallet-table-wrap">
     <table>
       <thead>
-        <tr><th>Joueur</th><th>Type</th><th>Description</th><th>Montant</th><th>Date</th></tr>
+        <tr><th>ID</th><th>Type</th><th>Description</th><th>Montant</th><th>Date</th></tr>
       </thead>
       <tbody>
         {% for tx in transactions %}
         <tr>
-          <td>{{ tx.player_name }}</td>
+          <td><strong>#{{ tx.player_ref_id }}</strong></td>
           <td>{{ tx.type }}</td>
           <td>{{ tx.description or '-' }}</td>
           <td class="{% if tx.amount >= 0 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(tx.amount) }} dh</td>

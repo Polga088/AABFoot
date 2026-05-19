@@ -3,14 +3,11 @@ import os
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from auth_utils import admin_page_required
+from player_utils import apply_id_label, player_id_label
 from routes.admin_utils import admin_guard, normalize_phone
 
 
 players_bp = Blueprint("players", __name__, url_prefix="/")
-
-
-def _full_name(first_name, last_name):
-    return f"{(first_name or '').strip()} {(last_name or '').strip()}".strip()
 
 
 def _fetch_players(conn, include_inactive=False):
@@ -29,7 +26,7 @@ def _fetch_players(conn, include_inactive=False):
     """
     if not include_inactive:
         query += " WHERE p.active = 1"
-    query += " ORDER BY p.active DESC, p.name ASC"
+    query += " ORDER BY p.active DESC, p.id ASC"
     return conn.execute(query).fetchall()
 
 
@@ -64,15 +61,11 @@ def create_player():
         return denied
 
     payload = request.get_json(silent=True) or request.form
-    first_name = (payload.get("first_name") or "").strip()
-    last_name = (payload.get("last_name") or "").strip()
     phone = normalize_phone(payload.get("phone"))
     initial_balance = float(payload.get("initial_balance") or 0)
 
-    if not first_name or not phone:
-        return jsonify({"success": False, "error": "Prenom et telephone obligatoires"}), 400
-
-    name = _full_name(first_name, last_name) or first_name
+    if not phone:
+        return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
 
     conn = current_app.get_db_connection()
     exists = conn.execute("SELECT id FROM players WHERE phone = ?", (phone,)).fetchone()
@@ -83,11 +76,12 @@ def create_player():
     cur = conn.execute(
         """
         INSERT INTO players (name, first_name, last_name, phone, role, active)
-        VALUES (?, ?, ?, ?, 'player', 1)
+        VALUES (?, '', '', ?, 'player', 1)
         """,
-        (name, first_name, last_name, phone),
+        ("-", phone),
     )
     player_id = cur.lastrowid
+    apply_id_label(conn, player_id)
     conn.execute(
         "INSERT INTO wallets (player_id, balance, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
         (player_id, initial_balance),
@@ -103,7 +97,7 @@ def create_player():
     conn.commit()
     conn.close()
 
-    return jsonify({"success": True, "player_id": player_id})
+    return jsonify({"success": True, "player_id": player_id, "label": player_id_label(player_id)})
 
 
 @players_bp.route("/joueurs/<int:player_id>", methods=["PUT"])
@@ -113,16 +107,12 @@ def update_player(player_id):
         return denied
 
     payload = request.get_json(silent=True) or {}
-    first_name = (payload.get("first_name") or "").strip()
-    last_name = (payload.get("last_name") or "").strip()
     phone_raw = payload.get("phone")
     phone = normalize_phone(phone_raw) if phone_raw else None
     active = payload.get("active")
 
-    if not first_name:
-        return jsonify({"success": False, "error": "Prenom obligatoire"}), 400
-
-    name = _full_name(first_name, last_name)
+    if not phone:
+        return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
 
     conn = current_app.get_db_connection()
     player = conn.execute("SELECT id FROM players WHERE id = ?", (player_id,)).fetchone()
@@ -140,24 +130,11 @@ def update_player(player_id):
             return jsonify({"success": False, "error": "Ce numero existe deja"}), 409
 
     active_value = 1 if active is not False else 0
-    if phone is not None:
-        conn.execute(
-            """
-            UPDATE players
-            SET name = ?, first_name = ?, last_name = ?, phone = ?, active = ?
-            WHERE id = ?
-            """,
-            (name, first_name, last_name, phone, active_value, player_id),
-        )
-    else:
-        conn.execute(
-            """
-            UPDATE players
-            SET name = ?, first_name = ?, last_name = ?, active = ?
-            WHERE id = ?
-            """,
-            (name, first_name, last_name, active_value, player_id),
-        )
+    conn.execute(
+        "UPDATE players SET phone = ?, active = ? WHERE id = ?",
+        (phone, active_value, player_id),
+    )
+    apply_id_label(conn, player_id)
 
     conn.commit()
     conn.close()

@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import Blueprint, Response, current_app, jsonify, render_template, request
 
 from auth_utils import admin_page_required
+from player_utils import apply_id_label
 from routes.admin_utils import admin_guard, normalize_phone
 
 
@@ -28,7 +29,7 @@ def finance_page():
           COALESCE(w.balance, 0) AS balance
         FROM players p
         LEFT JOIN wallets w ON w.player_id = p.id
-        ORDER BY p.name ASC
+        ORDER BY p.id ASC
         """
     ).fetchall()
 
@@ -40,7 +41,7 @@ def finance_page():
           t.type,
           t.description,
           t.created_at,
-          p.name AS player_name,
+          p.id AS player_ref_id,
           p.phone
         FROM transactions t
         JOIN players p ON p.id = t.player_id
@@ -127,7 +128,7 @@ def export_finance():
               p.active
             FROM players p
             LEFT JOIN wallets w ON w.player_id = p.id
-            ORDER BY p.name ASC
+            ORDER BY p.id ASC
             """
         ).fetchall()
         writer = csv.writer(output)
@@ -215,26 +216,21 @@ def import_finance():
                 errors.append(f"Ligne {index}: telephone manquant")
                 continue
 
-            first_name = (row.get("first_name") or row.get("prenom") or row.get("nom") or "").strip()
-            last_name = (row.get("last_name") or row.get("nom_famille") or "").strip()
             amount = float(row.get("amount") or row.get("montant") or row.get("balance") or 0)
             description = (row.get("description") or "Import CSV").strip()
 
-            if not first_name:
-                first_name = (row.get("name") or "Joueur").strip().split(" ")[0]
-
-            name = f"{first_name} {last_name}".strip()
             player = conn.execute("SELECT id FROM players WHERE phone = ?", (phone,)).fetchone()
 
             if not player:
                 cur = conn.execute(
                     """
                     INSERT INTO players (name, first_name, last_name, phone, role, active)
-                    VALUES (?, ?, ?, ?, 'player', 1)
+                    VALUES ('-', '', '', ?, 'player', 1)
                     """,
-                    (name, first_name, last_name, phone),
+                    (phone,),
                 )
                 player_id = cur.lastrowid
+                apply_id_label(conn, player_id)
                 conn.execute(
                     "INSERT INTO wallets (player_id, balance) VALUES (?, 0)",
                     (player_id,),
@@ -242,6 +238,7 @@ def import_finance():
                 created += 1
             else:
                 player_id = player["id"]
+                apply_id_label(conn, player_id)
 
             if amount > 0:
                 conn.execute(
