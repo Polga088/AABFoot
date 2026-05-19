@@ -89,6 +89,24 @@ def ensure_availability_columns(db_path):
         conn.close()
 
 
+def ensure_db_indexes(db_path):
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.executescript(
+            """
+            CREATE INDEX IF NOT EXISTS idx_availabilities_match ON availabilities(match_id);
+            CREATE INDEX IF NOT EXISTS idx_availabilities_player ON availabilities(player_id);
+            CREATE INDEX IF NOT EXISTS idx_transactions_player ON transactions(player_id);
+            CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at);
+            CREATE INDEX IF NOT EXISTS idx_matches_date ON matches(date, time);
+            CREATE INDEX IF NOT EXISTS idx_players_phone ON players(phone);
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def ensure_match_media_table(db_path):
     conn = sqlite3.connect(db_path)
     try:
@@ -147,10 +165,15 @@ def create_app():
     ensure_player_auth_columns(db_path)
     ensure_availability_columns(db_path)
     ensure_match_media_table(db_path)
+    ensure_db_indexes(db_path)
 
     def get_db_connection():
-        conn = sqlite3.connect(app.config["DATABASE"])
+        conn = sqlite3.connect(app.config["DATABASE"], timeout=10, check_same_thread=False)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA cache_size=-64000")
+        conn.execute("PRAGMA temp_store=MEMORY")
         return conn
 
     app.get_db_connection = get_db_connection
