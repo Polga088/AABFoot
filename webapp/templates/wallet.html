@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card wallet-player-header">
+  <div class="wallet-player-left">
+    <span class="wallet-avatar">{{ player.initials }}</span>
+    <div>
+      <h2>{{ player.name }}</h2>
+      <p class="metric-sub">{{ player.masked_phone }}</p>
+    </div>
+  </div>
+  <div>
+    {% if player.active %}
+    <span class="badge badge-green">Actif</span>
+    {% else %}
+    <span class="badge badge-red">Inactif</span>
+    {% endif %}
+    <a class="btn" href="{{ url_for('auth.logout') }}">Déconnexion</a>
+  </div>
+</section>
+
+<section class="card wallet-balance-card">
+  <div
+    class="wallet-balance-value {% if balance > 30 %}balance-green{% elif balance >= 10 %}balance-amber{% else %}balance-red{% endif %}"
+  >
+    {{ "%.2f"|format(balance) }} dh
+  </div>
+  {% if paid_this_week %}
+  <span class="badge badge-green">✓ Cotisation payée cette semaine</span>
+  {% else %}
+  <span class="badge badge-red">✗ Cotisation en attente</span>
+  {% endif %}
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Évolution solde (8 semaines)</span>
+  </header>
+  <div
+    id="walletWeekChart"
+    class="wallet-week-chart"
+    data-series='{{ weekly_balances | tojson }}'
+  ></div>
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Historique</span>
+    <button class="btn" type="button" onclick="exportWalletCsv()">Export CSV</button>
+  </header>
+  <div class="filter-pills">
+    <button class="pill active-pill" data-wallet-filter="all" onclick="setWalletFilter('all')">Tout</button>
+    <button class="pill" data-wallet-filter="credit" onclick="setWalletFilter('credit')">Crédits</button>
+    <button class="pill" data-wallet-filter="cotisation" onclick="setWalletFilter('cotisation')">Cotisations</button>
+  </div>
+  <div class="wallet-table-wrap">
+    <table id="walletHistoryTable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Montant</th>
+          <th>Solde</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr data-tx-type="{{ tx.type }}">
+          <td>{% if tx.amount >= 0 %}➕{% else %}➖{% endif %}</td>
+          <td>{{ tx.description or tx.type }}</td>
+          <td>{{ tx.created_at }}</td>
+          <td class="{% if tx.amount >= 0 %}amount-plus{% else %}amount-minus{% endif %}">
+            {{ "%.2f"|format(tx.amount) }} dh
+          </td>
+          <td>{{ "%.2f"|format(tx.running_balance) }} dh</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Présences récentes</span>
+  </header>
+  <div class="wallet-attendance-rate">{{ stats.attendance_rate }}%</div>
+  <div class="wallet-dots">
+    {% for av in availabilities %}
+      {% if av.status == 'yes' %}
+      <span class="presence-dot dot-yes" title="{{ av.date }} {{ av.time }}"></span>
+      {% elif av.status == 'no' %}
+      <span class="presence-dot dot-no" title="{{ av.date }} {{ av.time }}"></span>
+      {% else %}
+      <span class="presence-dot dot-pending" title="{{ av.date }} {{ av.time }}"></span>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <p class="metric-sub">{{ stats.matches_yes }} matchs joués sur {{ stats.matches_total }}</p>
+  <p class="metric-sub">Total crédité saison : {{ "%.2f"|format(stats.total_credited) }} dh</p>
+  <p class="metric-sub">Total cotisations : {{ "%.2f"|format(stats.total_cotisations) }} dh</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

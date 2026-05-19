@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="metrics">
+  <article class="metric">
+    <div class="metric-label">Prochain événement</div>
+    <div class="metric-val">
+      {% if stats.next_match %}
+        {{ stats.next_match.date }} {{ stats.next_match.time }}
+      {% else %}
+        --
+      {% endif %}
+    </div>
+    <div class="metric-sub">
+      {% if stats.next_match %}
+        {% if stats.next_match.event_kind == 'match' %}
+          Match vs {{ stats.next_match.opponent }} ({{ stats.next_match.format }})
+        {% else %}
+          Entraînement {{ stats.next_match.format }} — {{ stats.next_match.location }}
+        {% endif %}
+      {% else %}
+        Rien de planifié
+      {% endif %}
+    </div>
+  </article>
+
+  <article class="metric">
+    <div class="metric-label">Dispos confirmées</div>
+    <div class="metric-val">{{ stats.next_match_dispos }}/{{ stats.total_players }}</div>
+    <div class="metric-sub">Votes « Oui » sur le sondage</div>
+  </article>
+
+  <article class="metric">
+    <div class="metric-label">Événements ce mois</div>
+    <div class="metric-val">{{ stats.matches_this_month }}</div>
+    <div class="metric-sub">Mois courant</div>
+  </article>
+
+  <article class="metric">
+    <div class="metric-label">Série actuelle</div>
+    <div class="metric-val">{{ stats.current_streak }}</div>
+    <div class="metric-sub">{{ stats.wins }} victoire(s) au total</div>
+  </article>
+</section>
+
+{% if user_is_admin %}
+<section class="card admin-form-card">
+  <header class="card-title">
+    <span>Nouvel événement</span>
+    {% if admin_token_configured %}
+    <span class="badge badge-green">Admin OK</span>
+    {% else %}
+    <span class="badge badge-amber">Définir ADMIN_TOKEN dans .env</span>
+    {% endif %}
+  </header>
+
+  <form id="eventForm" class="event-form">
+    <div class="form-row">
+      <label class="form-label" for="eventKind">Type</label>
+      <select id="eventKind" name="event_kind" class="form-input">
+        <option value="training" selected>Entraînement (semaine)</option>
+        <option value="match">Match (autre entreprise)</option>
+      </select>
+    </div>
+
+    <div class="form-row" id="opponentRow">
+      <label class="form-label" for="opponent">Adversaire</label>
+      <input id="opponent" name="opponent" class="form-input" type="text" placeholder="Nom de l'équipe adverse" disabled>
+    </div>
+
+    <div class="form-row form-row-2">
+      <div>
+        <label class="form-label" for="matchFormat">Format</label>
+        <select id="matchFormat" name="format" class="form-input">
+          {% for fmt in formats %}
+          <option value="{{ fmt }}" {% if fmt == '5v5' %}selected{% endif %}>{{ fmt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="matchDate">Date</label>
+        <input id="matchDate" name="date" class="form-input" type="date" required>
+      </div>
+    </div>
+
+    <div class="form-row form-row-2">
+      <div>
+        <label class="form-label" for="matchTime">Heure</label>
+        <input id="matchTime" name="time" class="form-input" type="time" required>
+      </div>
+      <div>
+        <label class="form-label" for="location">Lieu</label>
+        <input id="location" name="location" class="form-input" type="text" value="Terrain habituel" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label" for="mapsUrl">Lien Google Maps</label>
+      <input id="mapsUrl" name="maps_url" class="form-input" type="url" placeholder="https://maps.google.com/...">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label" for="notes">Notes</label>
+      <textarea id="notes" name="notes" class="form-input" rows="2" placeholder="Consignes, parking, etc."></textarea>
+    </div>
+
+    <div class="form-row form-check">
+      <label>
+        <input type="checkbox" id="publishPoll" name="publish_poll" checked>
+        Envoyer le sondage WhatsApp au groupe après création
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Créer l'événement</button>
+    </div>
+    <p id="formFeedback" class="form-feedback" aria-live="polite"></p>
+  </form>
+</section>
+{% endif %}
+
+<section class="card">
+  <header class="card-title">
+    <span>Calendrier mensuel — {{ month_name }} {{ current_year }}</span>
+    <span>
+      <a class="btn" href="/calendrier?month={{ prev_month }}&year={{ prev_year }}">← Précédent</a>
+      <a class="btn" href="/calendrier?month={{ next_month }}&year={{ next_year }}">Suivant →</a>
+    </span>
+  </header>
+
+  <div class="calendar-grid calendar-head">
+    <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+  </div>
+  {% for week in calendar_weeks %}
+  <div class="calendar-grid">
+    {% for cell in week %}
+    <div class="calendar-cell {{ 'out-month' if not cell.in_month }} {{ 'today' if cell.is_today }} {{ 'has-match' if cell.has_match }}">
+      <span>{{ cell.day }}</span>
+      <div class="dots">
+        {% if cell.has_match %}<i class="dot dot-green" title="Match"></i>{% endif %}
+        {% if cell.has_training %}<i class="dot dot-blue" title="Entraînement"></i>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Événements à venir</span>
+    <span class="badge badge-blue">{{ upcoming_events|length }}</span>
+  </header>
+
+  {% for event in upcoming_events %}
+  <article class="event-card event-{{ event.event_type }}" data-match-id="{{ event.id }}">
+    <div class="event-top">
+      <div>
+        <strong>
+          {% if event.event_kind == 'match' %}
+            ⚽ Match vs {{ event.opponent }}
+          {% else %}
+            🏃 Entraînement {{ event.format }}
+          {% endif %}
+          — {{ event.date }} {{ event.time }}
+        </strong>
+        <div class="metric-sub">{{ event.location }}</div>
+        {% if event.maps_url %}
+        <div class="metric-sub"><a href="{{ event.maps_url }}" target="_blank" rel="noopener">Voir sur Google Maps</a></div>
+        {% endif %}
+      </div>
+      {% if event.event_kind == 'match' %}
+      <span class="badge badge-green">Match</span>
+      {% else %}
+      <span class="badge badge-blue">Entraînement</span>
+      {% endif %}
+    </div>
+    <div class="metric-sub">
+      #{{ event.id }} — Dispos: {{ event.yes_count }} oui, {{ event.maybe_count }} peut-être / {{ event.total_players }}
+      {% if event.poll_sent %} · <span class="badge badge-green">Sondage envoyé</span>{% endif %}
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{ event.pct_dispo }}%;"></div>
+    </div>
+    {% if user_is_admin %}
+    <div class="event-actions">
+      <button type="button" class="btn btn-sm" data-action="edit-event" data-match-id="{{ event.id }}">Modifier</button>
+      {% if not event.poll_sent %}
+      <button type="button" class="btn btn-sm" data-action="poll" data-match-id="{{ event.id }}">Publier sondage</button>
+      {% else %}
+      <button type="button" class="btn btn-sm" data-action="poll-republish" data-match-id="{{ event.id }}">Republier sondage</button>
+      <button type="button" class="btn btn-sm btn-danger" data-action="poll-delete" data-match-id="{{ event.id }}">Supprimer sondage</button>
+      {% endif %}
+      <button type="button" class="btn btn-sm" data-action="lineup" data-match-id="{{ event.id }}">Générer lineup</button>
+      <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
+    </div>
+    {% endif %}
+    <p class="event-action-feedback metric-sub" data-feedback-for="{{ event.id }}"></p>
+  </article>
+  {% else %}
+  <p class="metric-sub">Aucun événement à venir.</p>
+  {% endfor %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}

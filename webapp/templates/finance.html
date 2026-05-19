@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <header class="card-title">
+    <span>Finance & cotisations</span>
+    {% if admin_token_configured %}<span class="badge badge-green">Admin OK</span>{% endif %}
+  </header>
+  <p class="metric-sub">
+    Règle : vote <strong>Oui</strong> sur le sondage → <strong>-{{ cotisation_amount }} dh</strong> du wallet.
+    Vote <strong>Non</strong> ou <strong>Peut-être</strong> → solde inchangé.
+    Chaque joueur peut alimenter son solde librement (crédit admin ou import CSV).
+  </p>
+</section>
+
+<section class="card">
+  <header class="card-title"><span>Alimenter un solde</span></header>
+  <form id="creditForm" class="event-form">
+    <div class="form-row form-row-2">
+      <div>
+        <label class="form-label" for="creditPlayer">Joueur</label>
+        <select id="creditPlayer" class="form-input" required>
+          <option value="">Choisir...</option>
+          {% for p in players %}
+          {% if p.active %}
+          <option value="{{ p.id }}">{{ p.first_name or p.name }} {{ p.last_name or '' }} ({{ "%.2f"|format(p.balance) }} dh)</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="creditAmount">Montant (dh)</label>
+        <input id="creditAmount" type="number" min="0.01" step="0.01" class="form-input" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="creditDesc">Description</label>
+      <input id="creditDesc" class="form-input" value="Alimentation solde">
+    </div>
+    <button type="submit" class="btn btn-primary">Créditer</button>
+    <p id="creditFeedback" class="form-feedback"></p>
+  </form>
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Import / Export CSV</span>
+  </header>
+  <div class="form-actions">
+    <a class="btn" href="#" id="exportTransactions">Exporter cotisations</a>
+    <a class="btn" href="#" id="exportPlayers">Exporter joueurs</a>
+  </div>
+  <form id="importForm" class="event-form" style="margin-top:12px;">
+    <div class="form-row">
+      <label class="form-label" for="importFile">Importer un fichier CSV</label>
+      <input id="importFile" type="file" accept=".csv" class="form-input" required>
+      <p class="metric-sub">Colonnes : phone, first_name, last_name, amount (ou prenom, nom, telephone, montant)</p>
+    </div>
+    <button type="submit" class="btn btn-primary">Importer</button>
+    <p id="importFeedback" class="form-feedback"></p>
+  </form>
+</section>
+
+<section class="card">
+  <header class="card-title"><span>Soldes joueurs</span></header>
+  <div class="wallet-table-wrap">
+    <table>
+      <thead>
+        <tr><th>Joueur</th><th>Téléphone</th><th>Solde</th></tr>
+      </thead>
+      <tbody>
+        {% for p in players %}
+        <tr>
+          <td>{{ p.first_name or p.name }} {{ p.last_name or '' }}</td>
+          <td>{{ p.phone }}</td>
+          <td class="{% if p.balance >= 10 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(p.balance) }} dh</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-title"><span>Dernières transactions</span></header>
+  <div class="wallet-table-wrap">
+    <table>
+      <thead>
+        <tr><th>Joueur</th><th>Type</th><th>Description</th><th>Montant</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td>{{ tx.player_name }}</td>
+          <td>{{ tx.type }}</td>
+          <td>{{ tx.description or '-' }}</td>
+          <td class="{% if tx.amount >= 0 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(tx.amount) }} dh</td>
+          <td>{{ tx.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/finance.js') }}"></script>
+{% endblock %}

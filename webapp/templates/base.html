@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foot AAB — Al Akhdar Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/aab-logo.png') }}" type="image/png">
+  <script>window.FOOTBOT_IS_ADMIN = {{ 'true' if user_is_admin else 'false' }};</script>
+  <script src="{{ url_for('static', filename='js/admin-api.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar">
+      <a href="/calendrier" class="nav-brand">
+        <img
+          src="{{ url_for('static', filename='img/aab-logo.png') }}"
+          alt="Al Akhdar Bank"
+          class="nav-logo"
+        >
+        <span class="nav-brand-text">
+          <span class="nav-brand-title">Foot AAB</span>
+          <span class="nav-brand-sub">Al Akhdar Bank</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="/calendrier" class="{{ 'active' if active_page == 'cal' }}">Calendrier</a>
+        <a href="/matchs" class="{{ 'active' if active_page == 'hist' }}">Matchs</a>
+        {% if user_is_admin %}
+        <a href="/joueurs" class="{{ 'active' if active_page == 'players' }}">Joueurs</a>
+        <a href="/finance" class="{{ 'active' if active_page == 'finance' }}">Finance</a>
+        {% endif %}
+        {% if user_logged_in %}
+        <a href="/wallet" class="nav-wallet {{ 'active' if active_page == 'wallet' }}">Mon wallet</a>
+        <span class="nav-user">{{ current_player_name }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="nav-logout">Déconnexion</a>
+        {% else %}
+        <a href="{{ url_for('auth.login_page') }}" class="{{ 'active' if active_page == 'auth' }}">Connexion</a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="brand-accent-bar" aria-hidden="true"></div>
+  </header>
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages" aria-live="polite">
+        {% for category, message in messages %}
+        <p class="form-feedback {{ 'is-error' if category == 'error' else '' }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <img src="{{ url_for('static', filename='img/aab-logo.png') }}" alt="" class="footer-logo">
+    <span>Foot AAB — équipe Al Akhdar Bank</span>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

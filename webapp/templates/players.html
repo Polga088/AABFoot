@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <header class="card-title">
+    <span>Liste des joueurs</span>
+    <span>
+      {% if admin_token_configured %}<span class="badge badge-green">Admin OK</span>{% endif %}
+      <a class="btn btn-sm" href="/joueurs?show_inactive={{ 0 if show_inactive else 1 }}">
+        {{ 'Masquer inactifs' if show_inactive else 'Voir inactifs' }}
+      </a>
+    </span>
+  </header>
+
+  <p id="playersPageFeedback" class="form-feedback" aria-live="polite"></p>
+
+  <form id="playerForm" class="event-form">
+    <div class="form-row form-row-2">
+      <div>
+        <label class="form-label" for="firstName">Prénom</label>
+        <input id="firstName" name="first_name" class="form-input" required>
+      </div>
+      <div>
+        <label class="form-label" for="lastName">Nom</label>
+        <input id="lastName" name="last_name" class="form-input">
+      </div>
+    </div>
+    <div class="form-row form-row-2">
+      <div>
+        <label class="form-label" for="playerPhone">Téléphone</label>
+        <input id="playerPhone" name="phone" class="form-input" placeholder="212612345678" required>
+      </div>
+      <div>
+        <label class="form-label" for="initialBalance">Solde initial (dh)</label>
+        <input id="initialBalance" name="initial_balance" class="form-input" type="number" min="0" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Ajouter le joueur</button>
+    </div>
+    <p id="playerFormFeedback" class="form-feedback" aria-live="polite"></p>
+  </form>
+</section>
+
+<section class="card">
+  <header class="card-title"><span>{{ players|length }} joueur(s) affiché(s)</span></header>
+  <div class="wallet-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Prénom</th>
+          <th>Nom</th>
+          <th>Téléphone</th>
+          <th>Solde</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="playersTableBody">
+        {% for p in players %}
+        <tr data-player-id="{{ p.id }}" class="{{ 'row-inactive' if not p.active }}">
+          <td>{{ p.first_name or p.name }}</td>
+          <td>{{ p.last_name or '' }}</td>
+          <td>{{ p.phone }}</td>
+          <td>{{ "%.2f"|format(p.balance) }} dh</td>
+          <td>
+            {% if p.active %}
+            <span class="badge badge-green">Actif</span>
+            {% else %}
+            <span class="badge badge-red">Inactif</span>
+            {% endif %}
+          </td>
+          <td class="player-actions">
+            <button type="button" class="btn btn-sm btn-edit-player" data-player-id="{{ p.id }}">Modifier</button>
+            {% if p.active %}
+            <button type="button" class="btn btn-sm btn-deactivate-player" data-player-id="{{ p.id }}">Désactiver</button>
+            <button type="button" class="btn btn-sm btn-danger btn-delete-player" data-player-id="{{ p.id }}">Supprimer</button>
+            {% else %}
+            <button type="button" class="btn btn-sm btn-reactivate-player" data-player-id="{{ p.id }}">Réactiver</button>
+            <button type="button" class="btn btn-sm btn-danger btn-delete-player" data-player-id="{{ p.id }}">Supprimer</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="metric-sub">Aucun joueur.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script id="playersData" type="application/json">{{ players | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/players.js') }}"></script>
+{% endblock %}

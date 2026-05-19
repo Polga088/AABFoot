@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="history-layout">
+  <section class="card">
+    <header class="card-title">
+      <span>Matchs joués</span>
+    </header>
+
+    <div class="filter-pills">
+      <a href="/matchs?filter=all" class="pill {{ 'active-pill' if filter == 'all' }}">Tous</a>
+      <a href="/matchs?filter=win" class="pill {{ 'active-pill' if filter == 'win' }}">Victoires</a>
+      <a href="/matchs?filter=loss" class="pill {{ 'active-pill' if filter == 'loss' }}">Défaites</a>
+      <a href="/matchs?filter=draw" class="pill {{ 'active-pill' if filter == 'draw' }}">Nuls</a>
+    </div>
+
+    <div class="match-list">
+      {% for match in matches %}
+      <article
+        class="match-card {{ 'active-card' if selected_match and selected_match.id == match.id }}"
+        data-match-id="{{ match.id }}"
+        onclick="fetchMatchDetail({{ match.id }})"
+      >
+        <div class="match-card-top">
+          <div class="match-date-block">{{ match.date }}</div>
+          <div class="match-main">
+            <div class="match-title">Match #{{ match.id }}</div>
+            <div class="metric-sub">{{ match.location }} - {{ match.time }}</div>
+          </div>
+          <div>
+            {% if match.result == 'win' %}
+            <span class="badge badge-green">{{ match.score_a }} - {{ match.score_b }}</span>
+            {% elif match.result == 'loss' %}
+            <span class="badge badge-red">{{ match.score_a }} - {{ match.score_b }}</span>
+            {% else %}
+            <span class="badge badge-amber">{{ match.score_a }} - {{ match.score_b }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 100%;"></div>
+        </div>
+      </article>
+      {% else %}
+      <p class="metric-sub">Aucun match trouvé.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card" id="matchDetailPane" data-selected-id="{{ selected_match.id if selected_match else '' }}">
+    <header class="card-title">
+      <span>Détail du match</span>
+      <span id="manOfTheMatchBadge" class="badge badge-blue" style="display:none;">⭐ Homme du match</span>
+    </header>
+
+    <div id="scoreDisplay" class="score-display">- -</div>
+    <div class="teams-labels">
+      <span>Équipe A</span>
+      <span>Équipe B</span>
+    </div>
+
+    <div class="lineup-grid">
+      <div>
+        <h4>Équipe A</h4>
+        <div id="teamAList"></div>
+      </div>
+      <div>
+        <h4>Équipe B</h4>
+        <div id="teamBList"></div>
+      </div>
+    </div>
+
+    <section class="media-section">
+      <h4>Galerie photos/vidéos</h4>
+      <div id="mediaGrid" class="media-grid"></div>
+      {% if user_is_admin %}
+      <input id="mediaInput" type="file" hidden accept="image/*,video/mp4,video/quicktime">
+      <div id="uploadDropzone" class="upload-dropzone" onclick="triggerUploadPicker()">
+        Dépose un média ici ou clique pour uploader
+      </div>
+      {% endif %}
+    </section>
+  </section>
+</div>
+
+<div id="lightboxOverlay" class="lightbox-overlay" style="display:none;">
+  <button class="lightbox-btn lightbox-prev" onclick="lightboxPrev()">‹</button>
+  <img id="lightboxImage" src="" alt="Aperçu">
+  <button class="lightbox-btn lightbox-next" onclick="lightboxNext()">›</button>
+  <button class="lightbox-btn lightbox-close" onclick="lightboxClose()">✕</button>
+</div>
+{% endblock %}
