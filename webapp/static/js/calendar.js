@@ -266,21 +266,6 @@ async function handleEventAction(button) {
       setTimeout(() => window.location.reload(), 1500);
     }
 
-    if (action === "poll-resend") {
-      setFeedback(feedback, "Mise en file d'envoi de l'invitation...");
-      const result = await postJson(`/calendrier/${matchId}/poll/resend`);
-      setFeedback(feedback, result.message || "Invitation en file d'attente (~20 s).");
-      setTimeout(() => window.location.reload(), 1500);
-    }
-
-    if (action === "poll-stop") {
-      if (!window.confirm("Arrêter les tentatives d'envoi du sondage pour cet événement ?")) return;
-      setFeedback(feedback, "Arrêt en cours...");
-      const result = await postJson(`/calendrier/${matchId}/poll/stop`);
-      setFeedback(feedback, result.message || "Envoi arrêté.");
-      setTimeout(() => window.location.reload(), 800);
-    }
-
     if (action === "lineup") {
       const colorA = window.prompt("Couleur équipe A (ex: Rouge)", "Rouge") || "Rouge";
       const colorB = window.prompt("Couleur équipe B (ex: Vert)", "Vert") || "Vert";
@@ -330,7 +315,8 @@ async function handleEventAction(button) {
       hideLineupPicker(matchId);
       setFeedback(
         feedback,
-        `Équipes enregistrées : ${result.team_a_count} (${result.color_a}) vs ${result.team_b_count} (${result.color_b}).`
+        `Équipes enregistrées : ${result.team_a_count} (${result.color_a}) vs ${result.team_b_count} (${result.color_b}). ` +
+          `Cliquez « MP gilets + infos » pour envoyer les messages privés.`
       );
     }
 
@@ -340,28 +326,34 @@ async function handleEventAction(button) {
     }
 
     if (action === "notify") {
-      if (button.disabled) return;
-      button.disabled = true;
-      const force = window.confirm(
-        "Envoyer les MP gilets + infos ?\n\nOK = envoi unique\nAnnuler = ne rien faire"
-      );
-      if (!force) {
-        button.disabled = false;
-        return;
-      }
-      setFeedback(feedback, "Envoi des messages privés (une seule fois)...");
+      setFeedback(feedback, "Envoi des MP privés (gilet, date, lieu)...");
       await postJson(`/calendrier/${matchId}/lineup/notify`, { force: false });
       setFeedback(
         feedback,
-        "MP en file d'attente. Si déjà envoyés, ils ne seront pas renvoyés."
+        "MP en file d'attente (~20 s). Validez d'abord la composition si ce n'est pas fait."
       );
+      setTimeout(() => window.location.reload(), 1500);
+    }
+
+    if (action === "notify-resend") {
+      if (
+        !window.confirm(
+          "Renvoyer les MP gilets + infos à tous les joueurs de la composition ?\n" +
+            "(Utilisez « Arrêter MP » si les messages tournent en boucle.)"
+        )
+      ) {
+        return;
+      }
+      setFeedback(feedback, "Renvoi des MP en cours...");
+      await postJson(`/calendrier/${matchId}/lineup/notify`, { force: true });
+      setFeedback(feedback, "MP en file d'attente (~20 s).");
       setTimeout(() => window.location.reload(), 1500);
     }
 
     if (action === "notify-stop") {
       if (!window.confirm("Arrêter l'envoi des MP gilets pour cet événement ?")) return;
       const result = await postJson(`/calendrier/${matchId}/lineup/notify/stop`);
-      setFeedback(feedback, result.message || "MP arrêtés.");
+      setFeedback(feedback, result.message || "Envoi des MP arrêté.");
       setTimeout(() => window.location.reload(), 800);
     }
 

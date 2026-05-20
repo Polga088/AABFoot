@@ -195,11 +195,14 @@
       {% endif %}
       , {{ event.maybe_count }} peut-être / {{ event.total_players }}
       {% if event.poll_sent %}
-        · <span class="badge badge-green">Sondage envoyé</span>
-      {% elif event.poll_stopped %}
-        · <span class="badge badge-amber">Envoi arrêté</span>
+        · <span class="badge badge-green">Sondage groupe OK</span>
       {% elif event.poll_pending or event.poll_republish_pending %}
-        · <span class="badge badge-blue">Invitation en attente</span>
+        · <span class="badge badge-blue">Sondage en attente</span>
+      {% endif %}
+      {% if event.lineup_notified_at %}
+        · <span class="badge badge-green">MP gilets envoyés</span>
+      {% elif event.lineup_notify_requested_at %}
+        · <span class="badge badge-blue">MP en cours</span>
       {% endif %}
     </div>
     <div class="progress-bar">
@@ -212,20 +215,26 @@
     {% if user_is_admin %}
     <div class="event-actions">
       <button type="button" class="btn btn-sm" data-action="edit-event" data-match-id="{{ event.id }}">Modifier</button>
+      <button type="button" class="btn btn-sm btn-danger" data-action="delete-event" data-match-id="{{ event.id }}">Supprimer événement</button>
+    </div>
+
+    <p class="metric-sub event-actions-label">Sondage WhatsApp (groupe)</p>
+    <div class="event-actions">
       {% if not event.poll_sent %}
       <button type="button" class="btn btn-sm" data-action="poll" data-match-id="{{ event.id }}">Publier sondage</button>
       {% else %}
+      <button type="button" class="btn btn-sm" data-action="poll-republish" data-match-id="{{ event.id }}">Republier sondage</button>
       <button type="button" class="btn btn-sm btn-danger" data-action="poll-delete-local" data-match-id="{{ event.id }}">Retirer sondage</button>
       {% endif %}
-      <button type="button" class="btn btn-sm btn-primary" data-action="poll-resend" data-match-id="{{ event.id }}">Renvoyer invitation</button>
-      <button type="button" class="btn btn-sm btn-danger" data-action="poll-stop" data-match-id="{{ event.id }}">Arrêter envoi</button>
-      <button type="button" class="btn btn-sm btn-danger" data-action="delete-event" data-match-id="{{ event.id }}">Supprimer événement</button>
+    </div>
+
+    <p class="metric-sub event-actions-label">Composition & messages privés</p>
+    <div class="event-actions">
       <button type="button" class="btn btn-sm" data-action="lineup" data-match-id="{{ event.id }}">Générer lineup</button>
       <button type="button" class="btn btn-sm" data-action="lineup-pick" data-match-id="{{ event.id }}">Choisir lineup</button>
       <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
-      {% if event.lineup_notify_requested_at and not event.lineup_notified_at %}
+      <button type="button" class="btn btn-sm" data-action="notify-resend" data-match-id="{{ event.id }}">Renvoyer MP</button>
       <button type="button" class="btn btn-sm btn-danger" data-action="notify-stop" data-match-id="{{ event.id }}">Arrêter MP</button>
-      {% endif %}
     </div>
     <div class="lineup-picker hidden" data-lineup-picker="{{ event.id }}" data-format="{{ event.format }}" data-format-max="{{ event.format_max or '' }}">
       <p class="lineup-picker-hint metric-sub" data-lineup-hint="{{ event.id }}"></p>
