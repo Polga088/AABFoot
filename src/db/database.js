@@ -34,6 +34,10 @@ function ensureMatchColumns() {
     {
       name: "poll_send_stopped",
       sql: "ALTER TABLE matches ADD COLUMN poll_send_stopped INTEGER DEFAULT 0"
+    },
+    {
+      name: "lineup_notify_force",
+      sql: "ALTER TABLE matches ADD COLUMN lineup_notify_force INTEGER DEFAULT 0"
     }
   ];
 

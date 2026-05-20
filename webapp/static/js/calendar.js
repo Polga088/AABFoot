@@ -351,9 +351,15 @@ async function handleEventAction(button) {
     }
 
     if (action === "notify-stop") {
-      if (!window.confirm("Arrêter l'envoi des MP gilets pour cet événement ?")) return;
       const result = await postJson(`/calendrier/${matchId}/lineup/notify/stop`);
       setFeedback(feedback, result.message || "Envoi des MP arrêté.");
+      setTimeout(() => window.location.reload(), 800);
+    }
+
+    if (action === "notify-reset") {
+      if (!window.confirm("Réinitialiser l'état des MP (en cours / envoyé) pour cet événement ?")) return;
+      const result = await postJson(`/calendrier/${matchId}/lineup/notify/reset`);
+      setFeedback(feedback, result.message || "État MP réinitialisé.");
       setTimeout(() => window.location.reload(), 800);
     }
 

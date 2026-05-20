@@ -235,6 +235,9 @@
       <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
       <button type="button" class="btn btn-sm" data-action="notify-resend" data-match-id="{{ event.id }}">Renvoyer MP</button>
       <button type="button" class="btn btn-sm btn-danger" data-action="notify-stop" data-match-id="{{ event.id }}">Arrêter MP</button>
+      {% if event.lineup_notify_requested_at or event.lineup_notified_at %}
+      <button type="button" class="btn btn-sm" data-action="notify-reset" data-match-id="{{ event.id }}">Réinitialiser MP</button>
+      {% endif %}
     </div>
     <div class="lineup-picker hidden" data-lineup-picker="{{ event.id }}" data-format="{{ event.format }}" data-format-max="{{ event.format_max or '' }}">
       <p class="lineup-picker-hint metric-sub" data-lineup-hint="{{ event.id }}"></p>

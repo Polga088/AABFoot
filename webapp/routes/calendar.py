@@ -633,10 +633,11 @@ def request_lineup_notify(match_id):
     conn.execute(
         """
         UPDATE matches
-        SET lineup_notify_requested_at = CURRENT_TIMESTAMP
+        SET lineup_notify_requested_at = CURRENT_TIMESTAMP,
+            lineup_notify_force = ?
         WHERE id = ?
         """,
-        (match_id,),
+        (1 if force else 0, match_id),
     )
     if force:
         conn.execute(
@@ -663,7 +664,8 @@ def stop_lineup_notify(match_id):
     conn.execute(
         """
         UPDATE matches
-        SET lineup_notify_requested_at = NULL
+        SET lineup_notify_requested_at = NULL,
+            lineup_notify_force = 0
         WHERE id = ?
         """,
         (match_id,),
@@ -674,7 +676,40 @@ def stop_lineup_notify(match_id):
         {
             "success": True,
             "stopped": True,
-            "message": "Envoi des MP gilets arrêté.",
+            "message": "Statut « MP en cours » effacé. Vous pouvez relancer « MP gilets + infos ».",
+        }
+    )
+
+
+@calendar_bp.route("/calendrier/<int:match_id>/lineup/notify/reset", methods=["POST"])
+def reset_lineup_notify(match_id):
+    """Efface MP en cours / envoyé pour débloquer l'interface."""
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    row = conn.execute("SELECT id FROM matches WHERE id = ?", (match_id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    conn.execute(
+        """
+        UPDATE matches
+        SET lineup_notify_requested_at = NULL,
+            lineup_notify_force = 0,
+            lineup_notified_at = NULL
+        WHERE id = ?
+        """,
+        (match_id,),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "message": "État MP réinitialisé. Générez la composition puis « MP gilets + infos ».",
         }
     )
 

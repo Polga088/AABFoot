@@ -96,9 +96,15 @@ async function processLineupQueue(client) {
 
     lineupNotifyInFlight.add(job.id);
     try {
-      const result = await notifyLineupPlayers(client, job.id);
+      const result = await notifyLineupPlayers(client, job.id, {
+        force: Boolean(job.lineup_notify_force)
+      });
       if (result.skipped) {
-        console.log(`Notification lineup #${job.id} ignoree (${result.reason})`);
+        if (result.reason === "not_connected") {
+          console.warn(`MP lineup #${job.id}: bot deconnecte, retry ~20s`);
+        } else {
+          console.log(`MP lineup #${job.id} ignore (${result.reason})`);
+        }
         continue;
       }
       console.log(

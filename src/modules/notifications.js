@@ -1,6 +1,7 @@
 const { db } = require("../db/database");
 const { EMOJI_COLORS } = require("./lineup");
-const { waitForConnected, prepareChat, formatError, sleep } = require("./whatsapp");
+const { normalizePhone } = require("../utils/phone");
+const { waitForConnected, formatError, sleep } = require("./whatsapp");
 
 function getLineupForMatch(matchId) {
   const lineup = db
@@ -25,6 +26,17 @@ function getLineupForMatch(matchId) {
   };
 }
 
+function clearLineupNotifyQueue(matchId) {
+  db.prepare(
+    `
+      UPDATE matches
+      SET lineup_notify_requested_at = NULL,
+          lineup_notify_force = 0
+      WHERE id = ?
+    `
+  ).run(matchId);
+}
+
 function claimLineupNotifyJob(matchId) {
   const result = db
     .prepare(
@@ -44,7 +56,8 @@ function markLineupNotified(matchId) {
   db.prepare(
     `
       UPDATE matches
-      SET lineup_notified_at = CURRENT_TIMESTAMP
+      SET lineup_notified_at = CURRENT_TIMESTAMP,
+          lineup_notify_force = 0
       WHERE id = ?
     `
   ).run(matchId);
@@ -79,39 +92,18 @@ function formatPrivateMatchInfo(playerName, match, vestColor) {
 async function notifyLineupPlayers(client, matchId, options = {}) {
   const force = Boolean(options.force);
 
-  const connected = await waitForConnected(client);
-  if (!connected) {
-    throw new Error("WhatsApp pas encore connecte");
-  }
-
   const match = db.prepare("SELECT * FROM matches WHERE id = ?").get(matchId);
   if (!match) {
-    throw new Error(`Match #${matchId} introuvable.`);
-  }
-
-  if (match.lineup_notified_at && !force) {
-    db.prepare(
-      "UPDATE matches SET lineup_notify_requested_at = NULL WHERE id = ?"
-    ).run(matchId);
-    return { sent: 0, failed: 0, matchId, skipped: true, reason: "already_notified" };
-  }
-
-  if (!claimLineupNotifyJob(matchId) && !force) {
-    return { sent: 0, failed: 0, matchId, skipped: true, reason: "not_queued" };
+    clearLineupNotifyQueue(matchId);
+    return { sent: 0, failed: 0, matchId, skipped: true, reason: "match_not_found" };
   }
 
   const lineup = getLineupForMatch(matchId);
   if (!lineup) {
-    throw new Error("Aucune composition pour ce match. Generez-la d'abord.");
+    clearLineupNotifyQueue(matchId);
+    console.error(`MP lineup #${matchId}: aucune composition`);
+    return { sent: 0, failed: 0, matchId, skipped: true, reason: "no_lineup" };
   }
-
-  const players = db
-    .prepare("SELECT id, name, phone FROM players WHERE active = 1")
-    .all();
-
-  const byId = new Map(players.map((p) => [p.id, p]));
-  let sent = 0;
-  let failed = 0;
 
   const seen = new Set();
   const assignments = [
@@ -123,6 +115,48 @@ async function notifyLineupPlayers(client, matchId, options = {}) {
     return true;
   });
 
+  if (!assignments.length) {
+    clearLineupNotifyQueue(matchId);
+    return { sent: 0, failed: 0, matchId, skipped: true, reason: "empty_lineup" };
+  }
+
+  if (match.lineup_notified_at && !force) {
+    clearLineupNotifyQueue(matchId);
+    return { sent: 0, failed: 0, matchId, skipped: true, reason: "already_notified" };
+  }
+
+  const connected = await waitForConnected(client, 20000);
+  if (!connected) {
+    console.warn(`MP lineup #${matchId}: WhatsApp non connecte, nouvel essai dans ~20s`);
+    return { sent: 0, failed: 0, matchId, skipped: true, reason: "not_connected", retry: true };
+  }
+
+  if (force) {
+    db.prepare("UPDATE matches SET lineup_notified_at = NULL WHERE id = ?").run(matchId);
+  }
+
+  const claimed = claimLineupNotifyJob(matchId);
+  if (!claimed && !force) {
+    const pending = db
+      .prepare("SELECT lineup_notify_requested_at FROM matches WHERE id = ?")
+      .get(matchId);
+    if (!pending?.lineup_notify_requested_at) {
+      return { sent: 0, failed: 0, matchId, skipped: true, reason: "not_queued" };
+    }
+  }
+
+  if (force && !claimed) {
+    claimLineupNotifyJob(matchId);
+  }
+
+  const players = db
+    .prepare("SELECT id, name, phone FROM players WHERE active = 1")
+    .all();
+
+  const byId = new Map(players.map((p) => [p.id, p]));
+  let sent = 0;
+  let failed = 0;
+
   for (const item of assignments) {
     const player = byId.get(item.id);
     if (!player?.phone) {
@@ -130,26 +164,41 @@ async function notifyLineupPlayers(client, matchId, options = {}) {
       continue;
     }
 
+    const chatId = normalizePhone(player.phone);
+    if (!chatId) {
+      failed += 1;
+      continue;
+    }
+
     try {
       const body = formatPrivateMatchInfo(player.name, match, item.color);
-      await client.sendMessage(player.phone, body);
+      await client.sendMessage(chatId, body);
       sent += 1;
       await sleep(900);
     } catch (error) {
-      console.error(`Echec MP lineup pour ${player.name}:`, formatError(error));
+      console.error(`Echec MP lineup pour ${player.name} (${chatId}):`, formatError(error));
       failed += 1;
     }
   }
 
-  markLineupNotified(matchId);
-  return { sent, failed, matchId };
+  if (sent > 0) {
+    markLineupNotified(matchId);
+    console.log(`MP lineup #${matchId}: ${sent} envoyes, ${failed} echecs`);
+    return { sent, failed, matchId };
+  }
+
+  clearLineupNotifyQueue(matchId);
+  console.error(
+    `MP lineup #${matchId}: aucun message envoye (${failed} echecs). File annulee.`
+  );
+  return { sent: 0, failed, matchId, skipped: true, reason: "all_failed" };
 }
 
 function processPendingLineupNotifications() {
   return db
     .prepare(
       `
-      SELECT id
+      SELECT id, lineup_notify_force
       FROM matches
       WHERE lineup_notify_requested_at IS NOT NULL
       ORDER BY lineup_notify_requested_at ASC
@@ -162,6 +211,7 @@ function processPendingLineupNotifications() {
 module.exports = {
   formatPrivateMatchInfo,
   claimLineupNotifyJob,
+  clearLineupNotifyQueue,
   notifyLineupPlayers,
   processPendingLineupNotifications
 };
