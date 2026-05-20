@@ -133,12 +133,24 @@
   {% for week in calendar_weeks %}
   <div class="calendar-grid">
     {% for cell in week %}
-    <div class="calendar-cell {{ 'out-month' if not cell.in_month }} {{ 'today' if cell.is_today }} {{ 'has-match' if cell.has_match }}">
-      <span>{{ cell.day }}</span>
-      <div class="dots">
-        {% if cell.has_match %}<i class="dot dot-green" title="Match"></i>{% endif %}
-        {% if cell.has_training %}<i class="dot dot-blue" title="Entraînement"></i>{% endif %}
+    <div class="calendar-cell {{ 'out-month' if not cell.in_month }} {{ 'today' if cell.is_today }} {{ 'has-events' if cell.events }}">
+      <span class="cell-day-num">{{ cell.day }}</span>
+      {% if cell.events %}
+      <div class="cell-events">
+        {% for ev in cell.events %}
+        <a href="#event-{{ ev.id }}" class="cell-event cell-event-{{ ev.event_type }}" title="{{ ev.date }} {{ ev.time }}">
+          <span class="cell-event-time">{{ ev.time }}</span>
+          <span class="cell-event-label">
+            {% if ev.event_kind == 'match' %}
+              ⚽ {{ ev.opponent or 'Match' }}
+            {% else %}
+              🏃 {{ ev.format }}
+            {% endif %}
+          </span>
+        </a>
+        {% endfor %}
       </div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -152,7 +164,7 @@
   </header>
 
   {% for event in upcoming_events %}
-  <article class="event-card event-{{ event.event_type }}" data-match-id="{{ event.id }}">
+  <article id="event-{{ event.id }}" class="event-card event-{{ event.event_type }}" data-match-id="{{ event.id }}" data-format-max="{{ event.format_max or '' }}">
     <div class="event-top">
       <div>
         <strong>
@@ -175,11 +187,21 @@
       {% endif %}
     </div>
     <div class="metric-sub">
-      #{{ event.id }} — Dispos: {{ event.yes_count }} oui, {{ event.maybe_count }} peut-être / {{ event.total_players }}
+      #{{ event.id }} — Dispos:
+      {% if event.format_max %}
+        <strong>{{ event.yes_count }}/{{ event.format_max }}</strong> ({{ event.format }})
+      {% else %}
+        {{ event.yes_count }} oui
+      {% endif %}
+      , {{ event.maybe_count }} peut-être / {{ event.total_players }}
       {% if event.poll_sent %} · <span class="badge badge-green">Sondage envoyé</span>{% endif %}
     </div>
     <div class="progress-bar">
+      {% if event.format_max %}
+      <div class="progress-fill" style="width: {{ (event.yes_count / event.format_max * 100) if event.format_max else 0 }}%;"></div>
+      {% else %}
       <div class="progress-fill" style="width: {{ event.pct_dispo }}%;"></div>
+      {% endif %}
     </div>
     {% if user_is_admin %}
     <div class="event-actions">
@@ -192,7 +214,16 @@
       {% endif %}
       <button type="button" class="btn btn-sm btn-danger" data-action="delete-event" data-match-id="{{ event.id }}">Supprimer événement</button>
       <button type="button" class="btn btn-sm" data-action="lineup" data-match-id="{{ event.id }}">Générer lineup</button>
+      <button type="button" class="btn btn-sm" data-action="lineup-pick" data-match-id="{{ event.id }}">Choisir lineup</button>
       <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
+    </div>
+    <div class="lineup-picker hidden" data-lineup-picker="{{ event.id }}">
+      <p class="metric-sub">Cochez les joueurs (max {{ event.format_max or '—' }} pour {{ event.format }}), puis validez.</p>
+      <div class="lineup-picker-list" data-lineup-list="{{ event.id }}"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-sm btn-primary" data-action="lineup-save" data-match-id="{{ event.id }}">Valider composition</button>
+        <button type="button" class="btn btn-sm" data-action="lineup-cancel" data-match-id="{{ event.id }}">Annuler</button>
+      </div>
     </div>
     {% endif %}
     <p class="event-action-feedback metric-sub" data-feedback-for="{{ event.id }}"></p>

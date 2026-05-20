@@ -116,7 +116,11 @@ function startScheduler(client) {
       const lineup = generateLineup(match.id);
       const message = formatLineupMessage(lineup, match);
       await client.sendMessage(groupId, message);
-      await notifyLineupPlayers(client, match.id);
+
+      const alreadyNotified = Boolean(match.lineup_notified_at);
+      if (!alreadyNotified) {
+        await notifyLineupPlayers(client, match.id, { force: false });
+      }
     } catch (error) {
       console.error("Erreur cron generation lineup:", error);
     }

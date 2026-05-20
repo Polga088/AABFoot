@@ -15,24 +15,9 @@ PIN_MAX_LEN = 6
 
 def normalize_phone_candidates(raw_phone):
     """Return a set of phone variants to match players.phone in DB."""
-    value = (raw_phone or "").strip()
-    value = value.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
-    if value.startswith("+"):
-        value = value[1:]
-    if not value:
-        return set()
+    from phone_utils import normalize_phone_candidates as canonical_candidates
 
-    candidates = {value}
-    plain = value.replace("@c.us", "")
-    candidates.add(plain)
-    candidates.add(f"{plain}@c.us")
-    if plain.isdigit():
-        if plain.startswith("212"):
-            candidates.add(f"+{plain}")
-            candidates.add(f"+{plain}@c.us")
-        if not plain.endswith("@c.us"):
-            candidates.add(f"{plain}@c.us")
-    return {c for c in candidates if c}
+    return canonical_candidates(raw_phone)
 
 
 def mask_phone(phone):

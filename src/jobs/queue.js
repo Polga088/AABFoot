@@ -13,6 +13,7 @@ const { formatError } = require("../modules/whatsapp");
 
 const POLL_RETRY_MS = 60000;
 const pollRetryAfter = new Map();
+const lineupNotifyInFlight = new Set();
 let pollInFlight = false;
 let jobsStarted = false;
 
@@ -69,13 +70,22 @@ async function processPollAdminQueue(client) {
 async function processLineupQueue(client) {
   const jobs = processPendingLineupNotifications();
   for (const job of jobs) {
+    if (lineupNotifyInFlight.has(job.id)) continue;
+
+    lineupNotifyInFlight.add(job.id);
     try {
       const result = await notifyLineupPlayers(client, job.id);
+      if (result.skipped) {
+        console.log(`Notification lineup #${job.id} ignoree (${result.reason})`);
+        continue;
+      }
       console.log(
         `Infos lineup envoyees (match #${job.id}): ${result.sent} MP, ${result.failed} echecs`
       );
     } catch (error) {
       console.error(`Echec notification lineup match #${job.id}:`, formatError(error));
+    } finally {
+      lineupNotifyInFlight.delete(job.id);
     }
   }
 }

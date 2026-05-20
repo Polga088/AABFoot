@@ -1,4 +1,5 @@
 const { detectIntent } = require("../llm/ollama");
+const { normalizePhone } = require("../utils/phone");
 
 async function parseIntent(text = "", phone = "") {
   const raw = text || "";
@@ -53,7 +54,7 @@ async function parseIntent(text = "", phone = "") {
       intent: "admin_add_player",
       valueFromMatch: (match) => ({
         name: match[1],
-        phone: `${match[2]}@c.us`
+        phone: normalizePhone(match[2])
       })
     },
     {

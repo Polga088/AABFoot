@@ -7,6 +7,7 @@ from datetime import date, datetime
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from auth_utils import is_session_admin
+from match_format import format_max_players
 from routes.admin_utils import admin_guard
 
 
@@ -112,6 +113,7 @@ def calendar_page():
         item["pct_dispo"] = round((item["yes_count"] / total_players) * 100, 1) if total_players else 0
         item["event_type"] = _event_type_for_row(item)
         item["poll_sent"] = bool(item.get("poll_sent_at"))
+        item["format_max"] = format_max_players(item.get("format"))
         matches.append(item)
 
         if item_date:
@@ -309,6 +311,7 @@ def generate_lineup(match_id):
         conn.close()
         return jsonify({"success": False, "error": "match_not_found"}), 404
 
+    match_row = conn.execute("SELECT format FROM matches WHERE id = ?", (match_id,)).fetchone()
     yes_rows = conn.execute(
         """
         SELECT p.id, p.name
@@ -317,7 +320,7 @@ def generate_lineup(match_id):
         WHERE a.match_id = ?
           AND a.status = 'yes'
           AND p.active = 1
-        ORDER BY p.name ASC
+        ORDER BY a.responded_at ASC, p.name ASC
         """,
         (match_id,),
     ).fetchall()
@@ -326,11 +329,32 @@ def generate_lineup(match_id):
         conn.close()
         return jsonify({"success": False, "error": "no_available_players"}), 400
 
-    players = [dict(row) for row in yes_rows]
+    all_yes = [dict(row) for row in yes_rows]
+    format_max = format_max_players(match_row["format"] if match_row else None) or len(all_yes)
+    players = list(all_yes)
+    selected_ids = payload.get("player_ids")
+    if isinstance(selected_ids, list) and selected_ids:
+        allowed = {int(pid) for pid in selected_ids}
+        players = [p for p in players if p["id"] in allowed]
+        if not players:
+            conn.close()
+            return jsonify({"success": False, "error": "invalid_player_selection"}), 400
+        if len(players) > format_max:
+            conn.close()
+            return jsonify(
+                {
+                    "success": False,
+                    "error": "too_many_players",
+                    "format_max": format_max,
+                }
+            ), 400
+
     random.shuffle(players)
-    split_index = max(1, len(players) // 2)
+    players = players[:format_max]
+    split_index = max(1, len(players) // 2) if len(players) > 1 else 1
     team_a_ids = [p["id"] for p in players[:split_index]]
     team_b_ids = [p["id"] for p in players[split_index:]]
+    reserve_count = max(0, len(all_yes) - len(players))
 
     existing = conn.execute("SELECT id FROM lineups WHERE match_id = ?", (match_id,)).fetchone()
     if existing:
@@ -360,6 +384,57 @@ def generate_lineup(match_id):
             "team_b_count": len(team_b_ids),
             "color_a": color_a,
             "color_b": color_b,
+            "format_max": format_max,
+            "selected_count": len(players),
+            "reserve_count": reserve_count,
+        }
+    )
+
+
+@calendar_bp.route("/calendrier/<int:match_id>/lineup/players", methods=["GET"])
+def lineup_players(match_id):
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    match = conn.execute("SELECT id, format FROM matches WHERE id = ?", (match_id,)).fetchone()
+    if not match:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    yes_rows = conn.execute(
+        """
+        SELECT p.id, p.name
+        FROM availabilities a
+        JOIN players p ON p.id = a.player_id
+        WHERE a.match_id = ?
+          AND a.status = 'yes'
+          AND p.active = 1
+        ORDER BY a.responded_at ASC, p.name ASC
+        """,
+        (match_id,),
+    ).fetchall()
+
+    lineup = conn.execute(
+        "SELECT team_a, team_b, color_a, color_b FROM lineups WHERE match_id = ?",
+        (match_id,),
+    ).fetchone()
+    conn.close()
+
+    format_max = format_max_players(match["format"]) or len(yes_rows)
+    selected_ids = []
+    if lineup:
+        selected_ids = json.loads(lineup["team_a"] or "[]") + json.loads(lineup["team_b"] or "[]")
+
+    return jsonify(
+        {
+            "success": True,
+            "format": match["format"],
+            "format_max": format_max,
+            "yes_players": [dict(row) for row in yes_rows],
+            "selected_ids": selected_ids,
+            "lineup": dict(lineup) if lineup else None,
         }
     )
 
@@ -380,18 +455,25 @@ def request_lineup_notify(match_id):
         conn.close()
         return jsonify({"success": False, "error": "lineup_missing"}), 400
 
+    payload = request.get_json(silent=True) or {}
+    force = str(payload.get("force", "")).lower() in ("1", "true", "yes", "on")
+
     conn.execute(
         """
         UPDATE matches
-        SET lineup_notify_requested_at = CURRENT_TIMESTAMP,
-            lineup_notified_at = NULL
+        SET lineup_notify_requested_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
         (match_id,),
     )
+    if force:
+        conn.execute(
+            "UPDATE matches SET lineup_notified_at = NULL WHERE id = ?",
+            (match_id,),
+        )
     conn.commit()
     conn.close()
-    return jsonify({"success": True, "notify_queued": True})
+    return jsonify({"success": True, "notify_queued": True, "force": force})
 
 
 @calendar_bp.route("/calendrier/<int:match_id>", methods=["PUT"])

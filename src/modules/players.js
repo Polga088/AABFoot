@@ -1,23 +1,25 @@
 const { db } = require("../db/database");
+const { normalizePhone, getPhoneLookupVariants } = require("../utils/phone");
 
-function normalizePhone(phone) {
-  if (!phone) return "";
-  const value = String(phone).trim();
-  if (value.includes("@")) return value;
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return value;
-  return `${digits}@c.us`;
+function findPlayerByPhone(rawPhone) {
+  const variants = getPhoneLookupVariants(rawPhone);
+  if (!variants.length) return null;
+
+  const placeholders = variants.map(() => "?").join(", ");
+  return db
+    .prepare(`SELECT * FROM players WHERE phone IN (${placeholders}) LIMIT 1`)
+    .get(...variants);
 }
 
 function ensurePlayerFromWhatsApp(phone, displayName) {
+  const existing = findPlayerByPhone(phone);
+  if (existing) {
+    return existing;
+  }
+
   const normalized = normalizePhone(phone);
   if (!normalized) {
     throw new Error("Numero WhatsApp invalide.");
-  }
-
-  let player = db.prepare("SELECT * FROM players WHERE phone = ?").get(normalized);
-  if (player) {
-    return player;
   }
 
   const safeName = (displayName || "Joueur").trim().slice(0, 80) || "Joueur";
@@ -43,6 +45,8 @@ async function resolveVoterName(client, voterId) {
 
 module.exports = {
   normalizePhone,
+  getPhoneLookupVariants,
+  findPlayerByPhone,
   ensurePlayerFromWhatsApp,
   resolveVoterName
 };

@@ -30,6 +30,63 @@ async function postJson(url, body = {}) {
   return payload;
 }
 
+function getFormatMaxForEvent(matchId) {
+  const card = document.querySelector(`[data-match-id="${matchId}"]`);
+  const raw = card?.dataset.formatMax;
+  const max = Number(raw);
+  return Number.isFinite(max) && max > 0 ? max : null;
+}
+
+function hideLineupPicker(matchId) {
+  const picker = document.querySelector(`[data-lineup-picker="${matchId}"]`);
+  if (picker) picker.classList.add("hidden");
+}
+
+async function openLineupPicker(matchId, feedback) {
+  const picker = document.querySelector(`[data-lineup-picker="${matchId}"]`);
+  const list = document.querySelector(`[data-lineup-list="${matchId}"]`);
+  if (!picker || !list) return;
+
+  setFeedback(feedback, "Chargement des joueurs...");
+  const res = await fetch(`/calendrier/${matchId}/lineup/players`, { headers: adminHeaders() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+
+  const max = data.format_max || data.yes_players.length;
+  const selected = new Set((data.selected_ids || []).map(Number));
+
+  list.innerHTML = "";
+  for (const player of data.yes_players) {
+    const id = `lineup-${matchId}-${player.id}`;
+    const checked = selected.has(player.id) ? "checked" : "";
+    list.insertAdjacentHTML(
+      "beforeend",
+      `<label><input type="checkbox" name="lineup-player" value="${player.id}" ${checked}> ${player.name}</label>`
+    );
+  }
+
+  list.querySelectorAll('input[name="lineup-player"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      const checked = list.querySelectorAll('input[name="lineup-player"]:checked');
+      if (checked.length > max) {
+        input.checked = false;
+        setFeedback(feedback, `Maximum ${max} joueurs pour ${data.format}.`, true);
+      }
+    });
+  });
+
+  picker.classList.remove("hidden");
+  setFeedback(feedback, `Sélectionnez jusqu'à ${max} joueurs, puis validez.`);
+}
+
+function getSelectedLineupIds(matchId) {
+  const list = document.querySelector(`[data-lineup-list="${matchId}"]`);
+  if (!list) return [];
+  return [...list.querySelectorAll('input[name="lineup-player"]:checked')].map((el) =>
+    Number(el.value)
+  );
+}
+
 async function handleCreateEvent(event) {
   event.preventDefault();
   const feedback = document.getElementById("formFeedback");
@@ -83,18 +140,64 @@ async function handleEventAction(button) {
         color_a: colorA,
         color_b: colorB
       });
+      const reserveMsg =
+        result.reserve_count > 0 ? ` · ${result.reserve_count} en réserve.` : "";
       setFeedback(
         feedback,
-        `Lineup OK : ${result.team_a_count} vs ${result.team_b_count} (${result.color_a} / ${result.color_b}).`
+        `Lineup OK : ${result.team_a_count} vs ${result.team_b_count} (${result.color_a} / ${result.color_b})${reserveMsg}`
       );
     }
 
-    if (action === "notify") {
-      setFeedback(feedback, "Envoi des messages privés...");
-      await postJson(`/calendrier/${matchId}/lineup/notify`);
+    if (action === "lineup-pick") {
+      await openLineupPicker(matchId, feedback);
+    }
+
+    if (action === "lineup-save") {
+      const playerIds = getSelectedLineupIds(matchId);
+      const max = getFormatMaxForEvent(matchId);
+      if (!playerIds.length) {
+        setFeedback(feedback, "Sélectionnez au moins un joueur.", true);
+        return;
+      }
+      if (max && playerIds.length > max) {
+        setFeedback(feedback, `Maximum ${max} joueurs.`, true);
+        return;
+      }
+      const colorA = window.prompt("Couleur équipe A", "Rouge") || "Rouge";
+      const colorB = window.prompt("Couleur équipe B", "Vert") || "Vert";
+      setFeedback(feedback, "Enregistrement de la composition...");
+      const result = await postJson(`/calendrier/${matchId}/lineup/generate`, {
+        color_a: colorA,
+        color_b: colorB,
+        player_ids: playerIds
+      });
+      hideLineupPicker(matchId);
       setFeedback(
         feedback,
-        "MP en file d'attente (date, heure, Maps, couleur gilet). Vérifiez que le bot est connecté."
+        `Composition enregistrée : ${result.team_a_count} vs ${result.team_b_count} (${result.selected_count}/${result.format_max}).`
+      );
+    }
+
+    if (action === "lineup-cancel") {
+      hideLineupPicker(matchId);
+      setFeedback(feedback, "");
+    }
+
+    if (action === "notify") {
+      if (button.disabled) return;
+      button.disabled = true;
+      const force = window.confirm(
+        "Envoyer les MP gilets + infos ?\n\nOK = envoi unique\nAnnuler = ne rien faire"
+      );
+      if (!force) {
+        button.disabled = false;
+        return;
+      }
+      setFeedback(feedback, "Envoi des messages privés (une seule fois)...");
+      await postJson(`/calendrier/${matchId}/lineup/notify`, { force: false });
+      setFeedback(
+        feedback,
+        "MP en file d'attente. Si déjà envoyés, ils ne seront pas renvoyés."
       );
     }
 
@@ -159,6 +262,9 @@ async function handleEventAction(button) {
     }
   } catch (error) {
     setFeedback(feedback, error.message, true);
+    if (action === "notify") {
+      button.disabled = false;
+    }
   }
 }
 

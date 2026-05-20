@@ -3,6 +3,7 @@ const { helpMessage } = require("./responses");
 const { askOllama } = require("../llm/ollama");
 const { db } = require("../db/database");
 const { applyVoteCotisation } = require("../modules/matchCotisation");
+const { canAcceptYesVote } = require("../modules/matchLimits");
 
 function isAdmin(player, phone) {
   return Boolean(player && (player.role === "admin" || phone === process.env.ADMIN_PHONE));
@@ -32,7 +33,7 @@ function getUpcomingMatch() {
   return db
     .prepare(
       `
-      SELECT id, date, time, location, status
+      SELECT id, date, time, location, status, format, event_kind, opponent
       FROM matches
       WHERE status IN ('scheduled', 'training')
       ORDER BY date ASC, time ASC
@@ -151,6 +152,13 @@ async function handleMessage(client, msg) {
           break;
         }
         const status = intent === "availability_yes" ? "yes" : "no";
+        if (status === "yes") {
+          const capacity = canAcceptYesVote(upcoming, player.id);
+          if (!capacity.allowed) {
+            response = `Complet (${capacity.current}/${capacity.max} pour ${upcoming.format}). Vote refuse.`;
+            break;
+          }
+        }
         upsertAvailability(player.id, upcoming.id, status);
         const billing = applyVoteCotisation(player.id, upcoming.id, status);
         let billingNote = "";

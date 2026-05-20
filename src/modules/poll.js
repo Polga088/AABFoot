@@ -3,6 +3,7 @@ const { db } = require("../db/database");
 const { ensurePlayerFromWhatsApp, resolveVoterName } = require("./players");
 const { setAvailability } = require("./match");
 const { applyVoteCotisation } = require("./matchCotisation");
+const { canAcceptYesVote, formatMaxPlayers } = require("./matchLimits");
 const { resolveGroupChatId } = require("./groups");
 const { sleep, formatError, waitForConnected, prepareChat } = require("./whatsapp");
 
@@ -18,7 +19,9 @@ function buildPollTitle(match) {
   const vs =
     match.event_kind === "match" && match.opponent ? ` vs ${match.opponent}` : "";
   const format = match.format || "5v5";
-  return `${kind}${vs} - ${match.date} ${match.time} (${format})`.slice(0, 120);
+  const max = formatMaxPlayers(format);
+  const cap = max ? ` max ${max}` : "";
+  return `${kind}${vs} - ${match.date} ${match.time} (${format}${cap})`.slice(0, 120);
 }
 
 function mapVoteToStatus(selectedOptions) {
@@ -125,6 +128,23 @@ async function handlePollVote(client, vote) {
   const voterId = vote.voter;
   const displayName = await resolveVoterName(client, voterId);
   const player = ensurePlayerFromWhatsApp(voterId, displayName);
+
+  if (status === "yes") {
+    const capacity = canAcceptYesVote(match, player.id);
+    if (!capacity.allowed) {
+      try {
+        await client.sendMessage(
+          voterId,
+          `⚠️ *Complet* — ${capacity.current}/${capacity.max} pour le ${match.format || "match"}.\n` +
+            `Votre vote « Oui » n'est pas accepté. Contactez l'admin pour la composition.`
+        );
+      } catch (error) {
+        console.warn(`Impossible d'avertir ${player.name} (complet):`, error.message);
+      }
+      return true;
+    }
+  }
+
   setAvailability(player.id, match.id, status);
   const billing = applyVoteCotisation(player.id, match.id, status);
 

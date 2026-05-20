@@ -1,0 +1,61 @@
+/**
+ * Numéro canonique Maroc : 212XXXXXXXXX@c.us
+ * 0663104773 et 212663104773 → même joueur
+ */
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function toCanonicalDigits(raw) {
+  let digits = digitsOnly(raw);
+  if (!digits) return "";
+
+  if (digits.length === 10 && digits.startsWith("0")) {
+    digits = `212${digits.slice(1)}`;
+  } else if (digits.length === 9 && digits.startsWith("6")) {
+    digits = `212${digits}`;
+  }
+
+  if (digits.startsWith("212") && digits.length >= 12) {
+    return digits.slice(0, 12);
+  }
+
+  return digits;
+}
+
+function normalizePhone(phone) {
+  if (!phone) return "";
+  const value = String(phone).trim();
+  if (value.includes("@")) {
+    const digits = toCanonicalDigits(value.replace(/@.*/, ""));
+    return digits ? `${digits}@c.us` : value;
+  }
+  const digits = toCanonicalDigits(value);
+  if (!digits) return "";
+  return `${digits}@c.us`;
+}
+
+function getPhoneLookupVariants(rawPhone) {
+  const canonical = normalizePhone(rawPhone);
+  if (!canonical) return [];
+
+  const digits = canonical.replace("@c.us", "");
+  const variants = new Set([canonical, digits, `${digits}@c.us`]);
+
+  if (digits.startsWith("212") && digits.length >= 12) {
+    const local = `0${digits.slice(3)}`;
+    variants.add(local);
+    variants.add(`${local}@c.us`);
+    variants.add(`+${digits}`);
+    variants.add(`+${digits}@c.us`);
+  }
+
+  return [...variants].filter(Boolean);
+}
+
+module.exports = {
+  digitsOnly,
+  toCanonicalDigits,
+  normalizePhone,
+  getPhoneLookupVariants
+};

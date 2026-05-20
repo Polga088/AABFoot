@@ -20,11 +20,6 @@ def admin_guard():
 
 
 def normalize_phone(raw_phone):
-    value = (raw_phone or "").strip().replace(" ", "").replace("-", "")
-    if value.startswith("+"):
-        value = value[1:]
-    value = value.replace("@c.us", "")
-    digits = "".join(ch for ch in value if ch.isdigit())
-    if not digits:
-        return ""
-    return f"{digits}@c.us"
+    from phone_utils import normalize_phone as canonical_normalize
+
+    return canonical_normalize(raw_phone)

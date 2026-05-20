@@ -1,4 +1,5 @@
 const { db } = require("../db/database");
+const { formatMaxPlayers } = require("../utils/matchFormat");
 
 const EMOJI_COLORS = {
   Rouge: "🔴",
@@ -50,8 +51,8 @@ function saveLineup(matchId, teamAIds, teamBIds, colorA, colorB) {
   return result.lastInsertRowid;
 }
 
-function generateLineup(matchId, colorA = "Rouge", colorB = "Vert") {
-  const availablePlayers = db
+function getYesPlayers(matchId) {
+  return db
     .prepare(
       `
       SELECT p.id, p.name
@@ -60,23 +61,45 @@ function generateLineup(matchId, colorA = "Rouge", colorB = "Vert") {
       WHERE a.match_id = ?
         AND a.status = 'yes'
         AND p.active = 1
-      ORDER BY p.name ASC
+      ORDER BY a.responded_at ASC, p.name ASC
     `
     )
     .all(matchId);
+}
 
-  if (!availablePlayers.length) {
+function pickLineupPlayers(matchId, playerIds = null) {
+  const match = db.prepare("SELECT format FROM matches WHERE id = ?").get(matchId);
+  const available = getYesPlayers(matchId);
+  if (!available.length) {
     throw new Error("Aucun joueur disponible pour générer une composition.");
   }
 
-  const shuffled = fisherYatesShuffle(availablePlayers);
+  const max = formatMaxPlayers(match?.format) || available.length;
+  let pool = available;
+
+  if (Array.isArray(playerIds) && playerIds.length) {
+    const allowed = new Set(playerIds.map(Number));
+    pool = available.filter((p) => allowed.has(p.id));
+    if (!pool.length) {
+      throw new Error("Aucun joueur sélectionné parmi les disponibles.");
+    }
+  }
+
+  const selected = fisherYatesShuffle(pool).slice(0, Math.min(max, pool.length));
+  const reserves = pool.filter((p) => !selected.some((s) => s.id === p.id));
+
+  return { selected, reserves, max };
+}
+
+function generateLineup(matchId, colorA = "Rouge", colorB = "Vert", playerIds = null) {
+  const { selected, reserves, max } = pickLineupPlayers(matchId, playerIds);
+  const shuffled = fisherYatesShuffle(selected);
   const splitIndex = Math.ceil(shuffled.length / 2);
   const rawTeamA = shuffled.slice(0, splitIndex);
   const rawTeamB = shuffled.slice(splitIndex);
 
   const teamA = withRoles(rawTeamA);
   const teamB = withRoles(rawTeamB);
-
   const teamAIds = teamA.map((p) => p.id);
   const teamBIds = teamB.map((p) => p.id);
   const lineupId = saveLineup(matchId, teamAIds, teamBIds, colorA, colorB);
@@ -88,6 +111,8 @@ function generateLineup(matchId, colorA = "Rouge", colorB = "Vert") {
     colorB,
     teamA,
     teamB,
+    reserves,
+    maxPlayers: max,
     createdAt: new Date().toISOString()
   };
 }
@@ -101,7 +126,7 @@ function formatLineupMessage(lineup, match) {
       ? players.map((p) => `- ${p.role} : ${p.name}`).join("\n")
       : "- Aucun joueur";
 
-  return [
+  const lines = [
     "🧠 *Composition générée*",
     `⚽ Match #${match.id} - ${match.date} ${match.time}`,
     `📍 ${match.location}`,
@@ -111,11 +136,20 @@ function formatLineupMessage(lineup, match) {
     "",
     `${colorBEmoji} *Equipe ${lineup.colorB}*`,
     renderTeam(lineup.teamB)
-  ].join("\n");
+  ];
+
+  if (lineup.reserves?.length) {
+    lines.push("", `⏳ Réserve (${lineup.reserves.length}): ${lineup.reserves.map((p) => p.name).join(", ")}`);
+  }
+
+  return lines.join("\n");
 }
 
 module.exports = {
   EMOJI_COLORS,
+  getYesPlayers,
+  pickLineupPlayers,
   generateLineup,
+  saveLineup,
   formatLineupMessage
 };
