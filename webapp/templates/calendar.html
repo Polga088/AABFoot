@@ -217,11 +217,28 @@
       <button type="button" class="btn btn-sm" data-action="lineup-pick" data-match-id="{{ event.id }}">Choisir lineup</button>
       <button type="button" class="btn btn-sm btn-primary" data-action="notify" data-match-id="{{ event.id }}">MP gilets + infos</button>
     </div>
-    <div class="lineup-picker hidden" data-lineup-picker="{{ event.id }}">
-      <p class="metric-sub">Cochez les joueurs (max {{ event.format_max or '—' }} pour {{ event.format }}), puis validez.</p>
-      <div class="lineup-picker-list" data-lineup-list="{{ event.id }}"></div>
+    <div class="lineup-picker hidden" data-lineup-picker="{{ event.id }}" data-format="{{ event.format }}" data-format-max="{{ event.format_max or '' }}">
+      <p class="lineup-picker-hint metric-sub" data-lineup-hint="{{ event.id }}"></p>
+      <div class="lineup-teams-grid">
+        <div class="lineup-team-col lineup-team-a">
+          <label class="form-label">Équipe A — gilet</label>
+          <input type="text" class="form-input lineup-color-input" data-lineup-color-a="{{ event.id }}" value="Rouge" placeholder="Rouge">
+          <ul class="lineup-team-roster" data-lineup-team-a="{{ event.id }}"></ul>
+          <span class="lineup-team-count metric-sub" data-lineup-count-a="{{ event.id }}">0</span>
+        </div>
+        <div class="lineup-team-col lineup-team-b">
+          <label class="form-label">Équipe B — gilet</label>
+          <input type="text" class="form-input lineup-color-input" data-lineup-color-b="{{ event.id }}" value="Vert" placeholder="Vert">
+          <ul class="lineup-team-roster" data-lineup-team-b="{{ event.id }}"></ul>
+          <span class="lineup-team-count metric-sub" data-lineup-count-b="{{ event.id }}">0</span>
+        </div>
+      </div>
+      <div class="lineup-pool-section">
+        <label class="form-label">Liste des joueurs</label>
+        <div class="lineup-pool-list" data-lineup-pool="{{ event.id }}"></div>
+      </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-sm btn-primary" data-action="lineup-save" data-match-id="{{ event.id }}">Valider composition</button>
+        <button type="button" class="btn btn-sm btn-primary" data-action="lineup-save" data-match-id="{{ event.id }}">Valider les 2 équipes</button>
         <button type="button" class="btn btn-sm" data-action="lineup-cancel" data-match-id="{{ event.id }}">Annuler</button>
       </div>
     </div>

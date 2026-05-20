@@ -295,6 +295,19 @@ def request_poll(match_id):
     return jsonify({"success": True, "poll_queued": True})
 
 
+def _upsert_yes_availabilities(conn, match_id, player_ids):
+    for player_id in player_ids:
+        conn.execute(
+            """
+            INSERT INTO availabilities (player_id, match_id, status, responded_at)
+            VALUES (?, ?, 'yes', CURRENT_TIMESTAMP)
+            ON CONFLICT(player_id, match_id)
+            DO UPDATE SET status = 'yes', responded_at = CURRENT_TIMESTAMP
+            """,
+            (int(player_id), match_id),
+        )
+
+
 @calendar_bp.route("/calendrier/<int:match_id>/lineup/generate", methods=["POST"])
 def generate_lineup(match_id):
     denied = admin_guard()
@@ -312,49 +325,79 @@ def generate_lineup(match_id):
         return jsonify({"success": False, "error": "match_not_found"}), 404
 
     match_row = conn.execute("SELECT format FROM matches WHERE id = ?", (match_id,)).fetchone()
-    yes_rows = conn.execute(
-        """
-        SELECT p.id, p.name
-        FROM availabilities a
-        JOIN players p ON p.id = a.player_id
-        WHERE a.match_id = ?
-          AND a.status = 'yes'
-          AND p.active = 1
-        ORDER BY a.responded_at ASC, p.name ASC
-        """,
-        (match_id,),
-    ).fetchall()
+    format_max = format_max_players(match_row["format"] if match_row else None)
+    team_max = (format_max // 2) if format_max else None
 
-    if not yes_rows:
-        conn.close()
-        return jsonify({"success": False, "error": "no_available_players"}), 400
+    team_a_raw = payload.get("team_a_ids")
+    team_b_raw = payload.get("team_b_ids")
 
-    all_yes = [dict(row) for row in yes_rows]
-    format_max = format_max_players(match_row["format"] if match_row else None) or len(all_yes)
-    players = list(all_yes)
-    selected_ids = payload.get("player_ids")
-    if isinstance(selected_ids, list) and selected_ids:
-        allowed = {int(pid) for pid in selected_ids}
-        players = [p for p in players if p["id"] in allowed]
-        if not players:
+    if isinstance(team_a_raw, list) and isinstance(team_b_raw, list):
+        team_a_ids = [int(pid) for pid in team_a_raw]
+        team_b_ids = [int(pid) for pid in team_b_raw]
+        overlap = set(team_a_ids) & set(team_b_ids)
+        if overlap:
             conn.close()
-            return jsonify({"success": False, "error": "invalid_player_selection"}), 400
-        if len(players) > format_max:
+            return jsonify({"success": False, "error": "player_in_both_teams"}), 400
+        total = len(team_a_ids) + len(team_b_ids)
+        if not total:
+            conn.close()
+            return jsonify({"success": False, "error": "empty_teams"}), 400
+        if format_max and total > format_max:
             conn.close()
             return jsonify(
-                {
-                    "success": False,
-                    "error": "too_many_players",
-                    "format_max": format_max,
-                }
-            ), 400
+                {"success": False, "error": "too_many_players", "format_max": format_max},
+                400,
+            )
+        if team_max and (len(team_a_ids) > team_max or len(team_b_ids) > team_max):
+            conn.close()
+            return jsonify(
+                {"success": False, "error": "team_too_large", "team_max": team_max},
+                400,
+            )
 
-    random.shuffle(players)
-    players = players[:format_max]
-    split_index = max(1, len(players) // 2) if len(players) > 1 else 1
-    team_a_ids = [p["id"] for p in players[:split_index]]
-    team_b_ids = [p["id"] for p in players[split_index:]]
-    reserve_count = max(0, len(all_yes) - len(players))
+        _upsert_yes_availabilities(conn, match_id, team_a_ids + team_b_ids)
+        reserve_count = 0
+    else:
+        yes_rows = conn.execute(
+            """
+            SELECT p.id, p.name
+            FROM availabilities a
+            JOIN players p ON p.id = a.player_id
+            WHERE a.match_id = ?
+              AND a.status = 'yes'
+              AND p.active = 1
+            ORDER BY a.responded_at ASC, p.name ASC
+            """,
+            (match_id,),
+        ).fetchall()
+
+        if not yes_rows:
+            conn.close()
+            return jsonify({"success": False, "error": "no_available_players"}), 400
+
+        all_yes = [dict(row) for row in yes_rows]
+        format_max = format_max or len(all_yes)
+        players = list(all_yes)
+        selected_ids = payload.get("player_ids")
+        if isinstance(selected_ids, list) and selected_ids:
+            allowed = {int(pid) for pid in selected_ids}
+            players = [p for p in players if p["id"] in allowed]
+            if not players:
+                conn.close()
+                return jsonify({"success": False, "error": "invalid_player_selection"}), 400
+            if len(players) > format_max:
+                conn.close()
+                return jsonify(
+                    {"success": False, "error": "too_many_players", "format_max": format_max},
+                    400,
+                )
+
+        random.shuffle(players)
+        players = players[:format_max]
+        split_index = max(1, len(players) // 2) if len(players) > 1 else 1
+        team_a_ids = [p["id"] for p in players[:split_index]]
+        team_b_ids = [p["id"] for p in players[split_index:]]
+        reserve_count = max(0, len(all_yes) - len(players))
 
     existing = conn.execute("SELECT id FROM lineups WHERE match_id = ?", (match_id,)).fetchone()
     if existing:
@@ -385,7 +428,7 @@ def generate_lineup(match_id):
             "color_a": color_a,
             "color_b": color_b,
             "format_max": format_max,
-            "selected_count": len(players),
+            "selected_count": len(team_a_ids) + len(team_b_ids),
             "reserve_count": reserve_count,
         }
     )
@@ -416,24 +459,56 @@ def lineup_players(match_id):
         (match_id,),
     ).fetchall()
 
+    all_rows = conn.execute(
+        """
+        SELECT id, name
+        FROM players
+        WHERE active = 1
+        ORDER BY name ASC
+        """
+    ).fetchall()
+
     lineup = conn.execute(
         "SELECT team_a, team_b, color_a, color_b FROM lineups WHERE match_id = ?",
         (match_id,),
     ).fetchone()
     conn.close()
 
-    format_max = format_max_players(match["format"]) or len(yes_rows)
-    selected_ids = []
+    format_max = format_max_players(match["format"])
+    team_max = (format_max // 2) if format_max else None
+    yes_players = [dict(row) for row in yes_rows]
+    all_players = [dict(row) for row in all_rows]
+
+    if yes_players:
+        pool = yes_players
+        source = "yes_votes"
+    else:
+        pool = all_players
+        source = "all_players"
+
+    team_a_ids = []
+    team_b_ids = []
+    color_a = "Rouge"
+    color_b = "Vert"
     if lineup:
-        selected_ids = json.loads(lineup["team_a"] or "[]") + json.loads(lineup["team_b"] or "[]")
+        team_a_ids = json.loads(lineup["team_a"] or "[]")
+        team_b_ids = json.loads(lineup["team_b"] or "[]")
+        color_a = lineup["color_a"] or color_a
+        color_b = lineup["color_b"] or color_b
 
     return jsonify(
         {
             "success": True,
             "format": match["format"],
             "format_max": format_max,
-            "yes_players": [dict(row) for row in yes_rows],
-            "selected_ids": selected_ids,
+            "team_max": team_max,
+            "source": source,
+            "pool_players": pool,
+            "yes_count": len(yes_players),
+            "team_a_ids": team_a_ids,
+            "team_b_ids": team_b_ids,
+            "color_a": color_a,
+            "color_b": color_b,
             "lineup": dict(lineup) if lineup else None,
         }
     )

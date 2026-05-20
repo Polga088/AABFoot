@@ -37,54 +37,187 @@ function getFormatMaxForEvent(matchId) {
   return Number.isFinite(max) && max > 0 ? max : null;
 }
 
+const lineupStateByMatch = new Map();
+
 function hideLineupPicker(matchId) {
   const picker = document.querySelector(`[data-lineup-picker="${matchId}"]`);
   if (picker) picker.classList.add("hidden");
+  lineupStateByMatch.delete(matchId);
+}
+
+function getLineupState(matchId) {
+  return lineupStateByMatch.get(matchId);
+}
+
+function playerName(state, playerId) {
+  return state.players.get(playerId)?.name || `Joueur#${playerId}`;
+}
+
+function renderLineupPickerUi(matchId, feedback) {
+  const state = getLineupState(matchId);
+  if (!state) return;
+
+  const rosterA = document.querySelector(`[data-lineup-team-a="${matchId}"]`);
+  const rosterB = document.querySelector(`[data-lineup-team-b="${matchId}"]`);
+  const pool = document.querySelector(`[data-lineup-pool="${matchId}"]`);
+  const countA = document.querySelector(`[data-lineup-count-a="${matchId}"]`);
+  const countB = document.querySelector(`[data-lineup-count-b="${matchId}"]`);
+
+  const teamMaxLabel = state.teamMax ? ` / ${state.teamMax}` : "";
+  if (countA) countA.textContent = `${state.teamA.size}${teamMaxLabel}`;
+  if (countB) countB.textContent = `${state.teamB.size}${teamMaxLabel}`;
+
+  const renderRoster = (el, ids, teamKey) => {
+    if (!el) return;
+    el.innerHTML = "";
+    for (const id of ids) {
+      const li = document.createElement("li");
+      li.style.display = "flex";
+      li.style.justifyContent = "space-between";
+      li.style.alignItems = "center";
+      li.style.gap = "8px";
+      const label = document.createElement("span");
+      label.textContent = playerName(state, id);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-sm";
+      btn.textContent = "Retirer";
+      btn.addEventListener("click", () => {
+        state[teamKey].delete(id);
+        renderLineupPickerUi(matchId, feedback);
+      });
+      li.appendChild(label);
+      li.appendChild(btn);
+      el.appendChild(li);
+    }
+    if (!ids.size) {
+      const li = document.createElement("li");
+      li.className = "metric-sub";
+      li.textContent = "Aucun joueur";
+      el.appendChild(li);
+    }
+  };
+
+  renderRoster(rosterA, state.teamA, "teamA");
+  renderRoster(rosterB, state.teamB, "teamB");
+
+  if (!pool) return;
+  pool.innerHTML = "";
+  const unassigned = [...state.players.keys()].filter(
+    (id) => !state.teamA.has(id) && !state.teamB.has(id)
+  );
+
+  for (const id of unassigned) {
+    const row = document.createElement("div");
+    row.className = "lineup-pool-row";
+    row.innerHTML = `<span>${playerName(state, id)}</span>`;
+    const actions = document.createElement("div");
+    actions.className = "lineup-pool-actions";
+
+    const btnA = document.createElement("button");
+    btnA.type = "button";
+    btnA.className = "btn btn-sm";
+    btnA.textContent = "→ A";
+    btnA.addEventListener("click", () => assignPlayerToTeam(matchId, id, "A", feedback));
+
+    const btnB = document.createElement("button");
+    btnB.type = "button";
+    btnB.className = "btn btn-sm";
+    btnB.textContent = "→ B";
+    btnB.addEventListener("click", () => assignPlayerToTeam(matchId, id, "B", feedback));
+
+    actions.appendChild(btnA);
+    actions.appendChild(btnB);
+    row.appendChild(actions);
+    pool.appendChild(row);
+  }
+
+  if (!unassigned.length) {
+    pool.innerHTML = '<p class="metric-sub">Tous les joueurs sont assignés à une équipe.</p>';
+  }
+}
+
+function assignPlayerToTeam(matchId, playerId, team, feedback) {
+  const state = getLineupState(matchId);
+  if (!state) return;
+
+  const target = team === "A" ? state.teamA : state.teamB;
+  const other = team === "A" ? state.teamB : state.teamA;
+
+  if (state.teamMax && target.size >= state.teamMax) {
+    setFeedback(
+      feedback,
+      `Équipe ${team} complète (max ${state.teamMax} pour ${state.format}).`,
+      true
+    );
+    return;
+  }
+
+  if (state.formatMax) {
+    const total = state.teamA.size + state.teamB.size;
+    if (!target.has(playerId) && !other.has(playerId) && total >= state.formatMax) {
+      setFeedback(
+        feedback,
+        `Maximum ${state.formatMax} joueurs au total (${state.format}).`,
+        true
+      );
+      return;
+    }
+  }
+
+  other.delete(playerId);
+  target.add(playerId);
+  renderLineupPickerUi(matchId, feedback);
+  setFeedback(feedback, "");
 }
 
 async function openLineupPicker(matchId, feedback) {
   const picker = document.querySelector(`[data-lineup-picker="${matchId}"]`);
-  const list = document.querySelector(`[data-lineup-list="${matchId}"]`);
-  if (!picker || !list) return;
+  const pool = document.querySelector(`[data-lineup-pool="${matchId}"]`);
+  if (!picker || !pool) return;
 
   setFeedback(feedback, "Chargement des joueurs...");
   const res = await fetch(`/calendrier/${matchId}/lineup/players`, { headers: adminHeaders() });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
 
-  const max = data.format_max || data.yes_players.length;
-  const selected = new Set((data.selected_ids || []).map(Number));
-
-  list.innerHTML = "";
-  for (const player of data.yes_players) {
-    const id = `lineup-${matchId}-${player.id}`;
-    const checked = selected.has(player.id) ? "checked" : "";
-    list.insertAdjacentHTML(
-      "beforeend",
-      `<label><input type="checkbox" name="lineup-player" value="${player.id}" ${checked}> ${player.name}</label>`
-    );
+  const players = new Map();
+  for (const p of data.pool_players || []) {
+    players.set(p.id, p);
   }
 
-  list.querySelectorAll('input[name="lineup-player"]').forEach((input) => {
-    input.addEventListener("change", () => {
-      const checked = list.querySelectorAll('input[name="lineup-player"]:checked');
-      if (checked.length > max) {
-        input.checked = false;
-        setFeedback(feedback, `Maximum ${max} joueurs pour ${data.format}.`, true);
-      }
-    });
+  const colorAInput = document.querySelector(`[data-lineup-color-a="${matchId}"]`);
+  const colorBInput = document.querySelector(`[data-lineup-color-b="${matchId}"]`);
+  if (colorAInput) colorAInput.value = data.color_a || "Rouge";
+  if (colorBInput) colorBInput.value = data.color_b || "Vert";
+
+  lineupStateByMatch.set(matchId, {
+    players,
+    teamA: new Set((data.team_a_ids || []).map(Number)),
+    teamB: new Set((data.team_b_ids || []).map(Number)),
+    format: data.format || "",
+    formatMax: data.format_max || null,
+    teamMax: data.team_max || null,
+    source: data.source
   });
 
-  picker.classList.remove("hidden");
-  setFeedback(feedback, `Sélectionnez jusqu'à ${max} joueurs, puis validez.`);
-}
+  const hint = document.querySelector(`[data-lineup-hint="${matchId}"]`);
+  if (hint) {
+    const perTeam = data.team_max ? `${data.team_max} par équipe` : "répartis en 2";
+    const total = data.format_max ? ` (${data.format_max} max)` : "";
+    if (data.source === "all_players") {
+      hint.textContent =
+        `Sondage non visible ou sans votes — liste complète des joueurs actifs. ` +
+        `Assignez ${perTeam}${total}, puis validez. Les joueurs choisis seront marqués « dispo ».`;
+    } else {
+      hint.textContent =
+        `Joueurs ayant voté « Oui ». Assignez ${perTeam}${total} (équipe A / équipe B).`;
+    }
+  }
 
-function getSelectedLineupIds(matchId) {
-  const list = document.querySelector(`[data-lineup-list="${matchId}"]`);
-  if (!list) return [];
-  return [...list.querySelectorAll('input[name="lineup-player"]:checked')].map((el) =>
-    Number(el.value)
-  );
+  renderLineupPickerUi(matchId, feedback);
+  picker.classList.remove("hidden");
+  picker.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 async function handleCreateEvent(event) {
@@ -153,28 +286,35 @@ async function handleEventAction(button) {
     }
 
     if (action === "lineup-save") {
-      const playerIds = getSelectedLineupIds(matchId);
-      const max = getFormatMaxForEvent(matchId);
-      if (!playerIds.length) {
-        setFeedback(feedback, "Sélectionnez au moins un joueur.", true);
+      const state = getLineupState(matchId);
+      if (!state) {
+        setFeedback(feedback, "Ouvrez d'abord « Choisir lineup ».", true);
         return;
       }
-      if (max && playerIds.length > max) {
-        setFeedback(feedback, `Maximum ${max} joueurs.`, true);
+
+      const teamAIds = [...state.teamA];
+      const teamBIds = [...state.teamB];
+      if (!teamAIds.length || !teamBIds.length) {
+        setFeedback(feedback, "Chaque équipe doit avoir au moins 1 joueur.", true);
         return;
       }
-      const colorA = window.prompt("Couleur équipe A", "Rouge") || "Rouge";
-      const colorB = window.prompt("Couleur équipe B", "Vert") || "Vert";
-      setFeedback(feedback, "Enregistrement de la composition...");
+
+      const colorA =
+        document.querySelector(`[data-lineup-color-a="${matchId}"]`)?.value.trim() || "Rouge";
+      const colorB =
+        document.querySelector(`[data-lineup-color-b="${matchId}"]`)?.value.trim() || "Vert";
+
+      setFeedback(feedback, "Enregistrement des 2 équipes...");
       const result = await postJson(`/calendrier/${matchId}/lineup/generate`, {
         color_a: colorA,
         color_b: colorB,
-        player_ids: playerIds
+        team_a_ids: teamAIds,
+        team_b_ids: teamBIds
       });
       hideLineupPicker(matchId);
       setFeedback(
         feedback,
-        `Composition enregistrée : ${result.team_a_count} vs ${result.team_b_count} (${result.selected_count}/${result.format_max}).`
+        `Équipes enregistrées : ${result.team_a_count} (${result.color_a}) vs ${result.team_b_count} (${result.color_b}).`
       );
     }
 
