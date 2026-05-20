@@ -71,6 +71,30 @@ CREATE TABLE IF NOT EXISTS match_media (
   FOREIGN KEY (match_id) REFERENCES matches(id)
 );
 
+CREATE TABLE IF NOT EXISTS match_goals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  match_id INTEGER NOT NULL,
+  player_id INTEGER NOT NULL,
+  assist_player_id INTEGER,
+  team TEXT DEFAULT 'a',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+  FOREIGN KEY (player_id) REFERENCES players(id),
+  FOREIGN KEY (assist_player_id) REFERENCES players(id)
+);
+
+CREATE TABLE IF NOT EXISTS match_motm_votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  match_id INTEGER NOT NULL,
+  voter_player_id INTEGER NOT NULL,
+  voted_player_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(match_id, voter_player_id),
+  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+  FOREIGN KEY (voter_player_id) REFERENCES players(id),
+  FOREIGN KEY (voted_player_id) REFERENCES players(id)
+);
+
 -- Legacy DB migration hint:
 -- SELECT name FROM pragma_table_info('matches');
 -- ALTER TABLE matches ADD COLUMN score_a INTEGER DEFAULT NULL;

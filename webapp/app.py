@@ -7,6 +7,8 @@ from routes.auth import auth_bp
 from routes.calendar import calendar_bp
 from routes.finance import finance_bp
 from routes.history import history_bp
+from routes.stats import stats_bp
+from match_stats_db import ensure_match_stats_tables
 from routes.players import players_bp
 from routes.wallet import wallet_bp
 
@@ -40,6 +42,7 @@ def ensure_match_columns(db_path):
         for col_name, sql in migrations:
             if col_name not in cols:
                 conn.execute(sql)
+        ensure_match_stats_tables(conn)
         conn.commit()
     finally:
         conn.close()
@@ -183,6 +186,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(history_bp)
+    app.register_blueprint(stats_bp)
     app.register_blueprint(wallet_bp)
     app.register_blueprint(players_bp)
     app.register_blueprint(finance_bp)

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stats-hero">
+  <div>
+    <h1 class="stats-hero-title">Statistiques Foot AAB</h1>
+    <p class="stats-hero-sub">Matchs joués, buts, passes décisives et votes meilleur joueur.</p>
+  </div>
+</section>
+
+<section class="stats-kpi-grid">
+  <article class="stat-kpi-card">
+    <span class="stat-kpi-label">Joueurs actifs</span>
+    <span class="stat-kpi-value">{{ players_stats|length }}</span>
+  </article>
+  <article class="stat-kpi-card accent-green">
+    <span class="stat-kpi-label">Meilleur buteur</span>
+    <span class="stat-kpi-value">{% if top_scorers %}{{ top_scorers[0].name }}{% else %}—{% endif %}</span>
+    <span class="stat-kpi-sub">{% if top_scorers %}{{ top_scorers[0].goals }} but(s){% endif %}</span>
+  </article>
+  <article class="stat-kpi-card accent-gold">
+    <span class="stat-kpi-label">Passes décisives</span>
+    <span class="stat-kpi-value">{% if top_assists %}{{ top_assists[0].name }}{% else %}—{% endif %}</span>
+    <span class="stat-kpi-sub">{% if top_assists %}{{ top_assists[0].assists }} passe(s){% endif %}</span>
+  </article>
+</section>
+
+<section class="card">
+  <header class="card-title">
+    <span>Classement général</span>
+    <span class="badge badge-blue">Points = 3×buts + 2×passes + 5×MVP</span>
+  </header>
+  <div class="stats-table-wrap">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Joueur</th>
+          <th>Matchs</th>
+          <th>Buts</th>
+          <th>Passes</th>
+          <th>MVP</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in players_stats %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><a href="/statistiques/joueur/{{ p.id }}" class="stats-player-link">{{ p.name }}</a></td>
+          <td>{{ p.matches_played }}</td>
+          <td><strong>{{ p.goals }}</strong></td>
+          <td>{{ p.assists }}</td>
+          <td>{{ p.motm_wins }}</td>
+          <td><span class="badge badge-gold">{{ p.points }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="metric-sub">Aucune statistique pour le moment.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

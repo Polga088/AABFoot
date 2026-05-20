@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="player-hero">
+  <div class="player-hero-avatar">{{ player_label }}</div>
+  <div>
+    <h1 class="player-hero-name">{{ player_label }}</h1>
+    <p class="player-hero-sub">Fiche joueur · Foot AAB</p>
+    <a href="/statistiques" class="btn btn-sm">← Classement</a>
+  </div>
+</section>
+
+<section class="stats-kpi-grid player-kpi-grid">
+  <article class="stat-kpi-card">
+    <span class="stat-kpi-label">Matchs joués</span>
+    <span class="stat-kpi-value">{{ stats.matches_played }}</span>
+  </article>
+  <article class="stat-kpi-card accent-green">
+    <span class="stat-kpi-label">Buts</span>
+    <span class="stat-kpi-value">{{ stats.goals }}</span>
+  </article>
+  <article class="stat-kpi-card accent-blue">
+    <span class="stat-kpi-label">Passes D.</span>
+    <span class="stat-kpi-value">{{ stats.assists }}</span>
+  </article>
+  <article class="stat-kpi-card accent-gold">
+    <span class="stat-kpi-label">MVP / Points</span>
+    <span class="stat-kpi-value">{{ stats.motm_wins }}</span>
+    <span class="stat-kpi-sub">{{ stats.points }} pts</span>
+  </article>
+</section>
+
+<div class="player-detail-grid">
+  <section class="card">
+    <header class="card-title"><span>Derniers buts</span></header>
+    <ul class="player-timeline">
+      {% for g in goals_detail %}
+      <li>
+        <span class="badge badge-green">⚽</span>
+        Match #{{ g.match_id }} · {{ g.date }}
+        {% if g.assist_name %}<span class="metric-sub">(Passe: {{ g.assist_name }})</span>{% endif %}
+      </li>
+      {% else %}
+      <li class="metric-sub">Aucun but enregistré.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <header class="card-title"><span>Dernières passes décisives</span></header>
+    <ul class="player-timeline">
+      {% for a in assists_detail %}
+      <li>
+        <span class="badge badge-blue">🎯</span>
+        Match #{{ a.match_id }} · {{ a.date }} — {{ a.scorer_name }}
+      </li>
+      {% else %}
+      <li class="metric-sub">Aucune passe décisive.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
