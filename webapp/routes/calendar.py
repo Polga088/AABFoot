@@ -89,7 +89,11 @@ def calendar_page():
           m.maps_url,
           m.notes,
           m.poll_sent_at,
+          m.poll_requested_at,
+          m.poll_send_stopped,
+          m.poll_republish_requested_at,
           m.lineup_notified_at,
+          m.lineup_notify_requested_at,
           m.score_a,
           m.score_b,
           COALESCE(SUM(CASE WHEN a.status = 'yes' THEN 1 ELSE 0 END), 0) AS yes_count,
@@ -113,6 +117,9 @@ def calendar_page():
         item["pct_dispo"] = round((item["yes_count"] / total_players) * 100, 1) if total_players else 0
         item["event_type"] = _event_type_for_row(item)
         item["poll_sent"] = bool(item.get("poll_sent_at"))
+        item["poll_stopped"] = bool(item.get("poll_send_stopped"))
+        item["poll_pending"] = bool(item.get("poll_requested_at")) and not item["poll_sent"]
+        item["poll_republish_pending"] = bool(item.get("poll_republish_requested_at"))
         item["format_max"] = format_max_players(item.get("format"))
         matches.append(item)
 
@@ -236,9 +243,10 @@ def add_match():
     cur = conn.execute(
         """
         INSERT INTO matches (
-          date, time, location, status, event_kind, opponent, format, maps_url, notes, poll_requested_at
+          date, time, location, status, event_kind, opponent, format, maps_url, notes,
+          poll_requested_at, poll_send_stopped
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         """,
         (
             match_date,
@@ -285,7 +293,8 @@ def request_poll(match_id):
         """
         UPDATE matches
         SET poll_requested_at = CURRENT_TIMESTAMP,
-            poll_message_id = NULL
+            poll_message_id = NULL,
+            poll_send_stopped = 0
         WHERE id = ?
         """,
         (match_id,),
@@ -293,6 +302,94 @@ def request_poll(match_id):
     conn.commit()
     conn.close()
     return jsonify({"success": True, "poll_queued": True})
+
+
+@calendar_bp.route("/calendrier/<int:match_id>/poll/resend", methods=["POST"])
+def resend_poll(match_id):
+    """Remet le sondage en file d'envoi (premier envoi ou republication)."""
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    row = conn.execute(
+        "SELECT id, poll_sent_at FROM matches WHERE id = ?",
+        (match_id,),
+    ).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    if row["poll_sent_at"]:
+        conn.execute(
+            """
+            UPDATE matches
+            SET poll_republish_requested_at = CURRENT_TIMESTAMP,
+                poll_send_stopped = 0,
+                poll_requested_at = NULL
+            WHERE id = ?
+            """,
+            (match_id,),
+        )
+        mode = "republish"
+    else:
+        conn.execute(
+            """
+            UPDATE matches
+            SET poll_requested_at = CURRENT_TIMESTAMP,
+                poll_message_id = NULL,
+                poll_send_stopped = 0,
+                poll_republish_requested_at = NULL
+            WHERE id = ?
+            """,
+            (match_id,),
+        )
+        mode = "send"
+
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "poll_queued": True,
+            "mode": mode,
+            "message": "Invitation en file d'attente (~20 s si le bot est connecte).",
+        }
+    )
+
+
+@calendar_bp.route("/calendrier/<int:match_id>/poll/stop", methods=["POST"])
+def stop_poll_send(match_id):
+    """Arrete les tentatives d'envoi / republication du sondage."""
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    row = conn.execute("SELECT id FROM matches WHERE id = ?", (match_id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    conn.execute(
+        """
+        UPDATE matches
+        SET poll_send_stopped = 1,
+            poll_requested_at = NULL,
+            poll_republish_requested_at = NULL
+        WHERE id = ?
+        """,
+        (match_id,),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "stopped": True,
+            "message": "Envoi du sondage arrete. Utilisez « Renvoyer invitation » pour relancer.",
+        }
+    )
 
 
 def _upsert_yes_availabilities(conn, match_id, player_ids):
@@ -549,6 +646,37 @@ def request_lineup_notify(match_id):
     conn.commit()
     conn.close()
     return jsonify({"success": True, "notify_queued": True, "force": force})
+
+
+@calendar_bp.route("/calendrier/<int:match_id>/lineup/notify/stop", methods=["POST"])
+def stop_lineup_notify(match_id):
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    row = conn.execute("SELECT id FROM matches WHERE id = ?", (match_id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "match_not_found"}), 404
+
+    conn.execute(
+        """
+        UPDATE matches
+        SET lineup_notify_requested_at = NULL
+        WHERE id = ?
+        """,
+        (match_id,),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "stopped": True,
+            "message": "Envoi des MP gilets arrêté.",
+        }
+    )
 
 
 @calendar_bp.route("/calendrier/<int:match_id>", methods=["PUT"])

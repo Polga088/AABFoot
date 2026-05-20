@@ -30,6 +30,10 @@ function ensureMatchColumns() {
     {
       name: "poll_republish_requested_at",
       sql: "ALTER TABLE matches ADD COLUMN poll_republish_requested_at DATETIME"
+    },
+    {
+      name: "poll_send_stopped",
+      sql: "ALTER TABLE matches ADD COLUMN poll_send_stopped INTEGER DEFAULT 0"
     }
   ];
 

@@ -108,6 +108,7 @@ function processPendingPollRequests() {
       FROM matches
       WHERE poll_requested_at IS NOT NULL
         AND poll_sent_at IS NULL
+        AND COALESCE(poll_send_stopped, 0) = 0
         AND status IN ('scheduled', 'training')
       ORDER BY poll_requested_at ASC
       LIMIT 1

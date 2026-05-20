@@ -34,6 +34,7 @@ def ensure_match_columns(db_path):
             ("lineup_notified_at", "ALTER TABLE matches ADD COLUMN lineup_notified_at DATETIME"),
             ("poll_delete_requested_at", "ALTER TABLE matches ADD COLUMN poll_delete_requested_at DATETIME"),
             ("poll_republish_requested_at", "ALTER TABLE matches ADD COLUMN poll_republish_requested_at DATETIME"),
+            ("poll_send_stopped", "ALTER TABLE matches ADD COLUMN poll_send_stopped INTEGER DEFAULT 0"),
         ]
         for col_name, sql in migrations:
             if col_name not in cols:

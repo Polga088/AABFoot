@@ -58,8 +58,11 @@ function processPendingPollAdminRequests() {
              poll_delete_requested_at,
              poll_republish_requested_at
       FROM matches
-      WHERE poll_delete_requested_at IS NOT NULL
-         OR poll_republish_requested_at IS NOT NULL
+      WHERE (
+              poll_delete_requested_at IS NOT NULL
+           OR poll_republish_requested_at IS NOT NULL
+            )
+        AND COALESCE(poll_send_stopped, 0) = 0
       ORDER BY COALESCE(poll_delete_requested_at, poll_republish_requested_at) ASC
       LIMIT 1
     `

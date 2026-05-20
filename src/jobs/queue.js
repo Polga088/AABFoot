@@ -13,6 +13,21 @@ const { formatError } = require("../modules/whatsapp");
 
 const POLL_RETRY_MS = 60000;
 const pollRetryAfter = new Map();
+const pollStoppedIds = new Set();
+
+function stopPollRetries(matchId) {
+  pollStoppedIds.add(Number(matchId));
+  pollRetryAfter.delete(Number(matchId));
+}
+
+function clearPollStop(matchId) {
+  pollStoppedIds.delete(Number(matchId));
+  pollRetryAfter.delete(Number(matchId));
+}
+
+function isPollStopped(matchId) {
+  return pollStoppedIds.has(Number(matchId));
+}
 const lineupNotifyInFlight = new Set();
 let pollInFlight = false;
 let jobsStarted = false;
@@ -24,6 +39,8 @@ async function processPollQueue(client) {
   if (!jobs.length) return;
 
   const job = jobs[0];
+  if (isPollStopped(job.id)) return;
+
   const retryAt = pollRetryAfter.get(job.id) || 0;
   if (Date.now() < retryAt) return;
 
@@ -31,15 +48,20 @@ async function processPollQueue(client) {
   try {
     const connected = await waitForConnected(client, 15000);
     if (!connected) {
-      pollRetryAfter.set(job.id, Date.now() + POLL_RETRY_MS);
+      if (!isPollStopped(job.id)) {
+        pollRetryAfter.set(job.id, Date.now() + POLL_RETRY_MS);
+      }
       return;
     }
 
     await sendMatchPoll(client, job.id);
     pollRetryAfter.delete(job.id);
+    pollStoppedIds.delete(job.id);
     console.log(`Sondage WhatsApp envoye pour le match #${job.id}`);
   } catch (error) {
-    pollRetryAfter.set(job.id, Date.now() + POLL_RETRY_MS);
+    if (!isPollStopped(job.id)) {
+      pollRetryAfter.set(job.id, Date.now() + POLL_RETRY_MS);
+    }
     console.error(`Echec envoi sondage match #${job.id}:`, formatError(error));
   } finally {
     pollInFlight = false;
@@ -106,5 +128,7 @@ function startBackgroundJobs(client) {
 }
 
 module.exports = {
-  startBackgroundJobs
+  startBackgroundJobs,
+  stopPollRetries,
+  clearPollStop
 };

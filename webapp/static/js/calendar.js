@@ -262,7 +262,23 @@ async function handleEventAction(button) {
     if (action === "poll") {
       setFeedback(feedback, "Publication du sondage...");
       await postJson(`/calendrier/${matchId}/poll`);
-      setFeedback(feedback, "Sondage en file d'attente. Actualisez dans quelques secondes.");
+      setFeedback(feedback, "Sondage en file d'attente (~20 s). Actualisez la page.");
+      setTimeout(() => window.location.reload(), 1500);
+    }
+
+    if (action === "poll-resend") {
+      setFeedback(feedback, "Mise en file d'envoi de l'invitation...");
+      const result = await postJson(`/calendrier/${matchId}/poll/resend`);
+      setFeedback(feedback, result.message || "Invitation en file d'attente (~20 s).");
+      setTimeout(() => window.location.reload(), 1500);
+    }
+
+    if (action === "poll-stop") {
+      if (!window.confirm("Arrêter les tentatives d'envoi du sondage pour cet événement ?")) return;
+      setFeedback(feedback, "Arrêt en cours...");
+      const result = await postJson(`/calendrier/${matchId}/poll/stop`);
+      setFeedback(feedback, result.message || "Envoi arrêté.");
+      setTimeout(() => window.location.reload(), 800);
     }
 
     if (action === "lineup") {
@@ -339,6 +355,14 @@ async function handleEventAction(button) {
         feedback,
         "MP en file d'attente. Si déjà envoyés, ils ne seront pas renvoyés."
       );
+      setTimeout(() => window.location.reload(), 1500);
+    }
+
+    if (action === "notify-stop") {
+      if (!window.confirm("Arrêter l'envoi des MP gilets pour cet événement ?")) return;
+      const result = await postJson(`/calendrier/${matchId}/lineup/notify/stop`);
+      setFeedback(feedback, result.message || "MP arrêtés.");
+      setTimeout(() => window.location.reload(), 800);
     }
 
     if (action === "poll-delete-local") {
