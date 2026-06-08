@@ -3,32 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MatchCup · Foot AAB</title>
+  <title>MATCHCUP 26 · Foot AAB</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/wc-global-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/wc26-official-inspired.css') }}">
   {% block extra_css %}{% endblock %}
-  <link rel="icon" href="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}" type="image/svg+xml">
+  <link rel="icon" href="{{ url_for('static', filename='brand/worldcup26/favicon.svg') }}" type="image/svg+xml">
   <script>window.FOOTBOT_IS_ADMIN = {{ 'true' if user_is_admin else 'false' }};</script>
   <script src="{{ url_for('static', filename='js/admin-api.js') }}"></script>
 </head>
-<body class="{% block body_class %}theme-wc-app wc-app-shell{% endblock %}">
-  <header class="site-header">
-    <nav class="navbar">
-      <a href="/calendrier" class="nav-brand">
+<body class="{% block body_class %}matchcup26{% endblock %}">
+  <header class="site-header app-header">
+    <nav class="navbar topbar">
+      <a href="/calendrier" class="nav-brand app-brand">
         <img
-          src="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}"
-          alt="MatchCup"
-          class="nav-logo"
-          width="44"
-          height="44"
+          src="{{ url_for('static', filename='brand/worldcup26/matchcup26-logo.svg') }}"
+          alt="MATCHCUP 26"
+          class="nav-logo wc26-logo"
         >
-        <span class="nav-brand-text">
-          <span class="nav-brand-title wc-title wc-gradient-text">MatchCup</span>
-          <span class="nav-brand-sub">Football Organizer · CDM 2026</span>
-        </span>
       </a>
       <div class="nav-links">
         <a href="/calendrier" class="{{ 'active' if active_page == 'cal' }}"><span class="nav-ico" aria-hidden="true">📅</span> Calendrier</a>
@@ -48,24 +42,23 @@
         {% endif %}
       </div>
     </nav>
-    <div class="brand-accent-bar" aria-hidden="true"></div>
-    <div class="wc-app-banner">
+    <div class="wc26-host-strip" aria-hidden="true"></div>
+    <div class="wc-matchday-bar wc-app-banner cdm-bar">
       <div class="wc-app-banner-inner">
         <div>
           <span class="wc-banner-trophy" aria-hidden="true">🏆</span>
-          <span class="wc-banner-title">World Cup Matchday</span>
-          <span class="wc-banner-sub"> · USA · México · Canada · Maroc · GMT+1</span>
+          <strong class="wc-banner-title">MATCHCUP 26</strong>
+          <span class="wc-banner-sub"> · USA · Mexico · Canada · 11 juin — 19 juillet 2026</span>
         </div>
-        <div class="wc-banner-flags" aria-label="Pays hôtes et Maroc">
-          <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="USA" width="28" height="19">
-          <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="México" width="28" height="19">
-          <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="Canada" width="28" height="19">
-          <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="Maroc" width="28" height="19">
+        <div class="wc-banner-flags" aria-label="Pays hôtes">
+          <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="USA" width="32" height="22">
+          <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="Mexico" width="32" height="22">
+          <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="Canada" width="32" height="22">
         </div>
       </div>
     </div>
   </header>
-  <main class="container">
+  <main class="container app-content">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       <div class="flash-messages" aria-live="polite">
@@ -77,19 +70,18 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
-  <footer class="site-footer">
+  <footer class="site-footer footer">
+    <div class="wc26-host-strip" aria-hidden="true"></div>
     <div class="wc-footer-flags" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="">
-      <img src="{{ url_for('static', filename='img/wc/flags/fr.png') }}" alt="">
-      <img src="{{ url_for('static', filename='img/wc/flags/br.png') }}" alt="">
-      <img src="{{ url_for('static', filename='img/wc/flags/es.png') }}" alt="">
-      <img src="{{ url_for('static', filename='img/wc/flags/de.png') }}" alt="">
       <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="">
       <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="">
       <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/fr.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/br.png') }}" alt="">
     </div>
-    <img src="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}" alt="" class="footer-logo" width="28" height="28">
-    <span class="wc-footer-tagline">MatchCup · Foot AAB · World Cup Matchday Theme</span>
+    <img src="{{ url_for('static', filename='brand/worldcup26/favicon.svg') }}" alt="" class="footer-logo" width="32" height="32">
+    <span class="wc-footer-tagline">MATCHCUP 26 · Foot AAB · Tri-Host Edition</span>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

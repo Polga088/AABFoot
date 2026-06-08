@@ -1,54 +1,44 @@
-# World Cup Matchday Theme — Foot AAB
+# MATCHCUP 26 — Official-Inspired Theme
 
-Thème visuel **World Cup Matchday** pour l'application Flask Foot AAB (sans modification de la logique métier).
+Thème visuel inspiré de la Coupe du Monde 2026 (tri-host USA · Mexico · Canada).
+**Sans logo FIFA officiel** — branding propriétaire MatchCup.
 
 ## Palette
 
 | Token | Valeur |
 |-------|--------|
-| `--wc-bg` | `#06111F` |
-| `--wc-red` | `#C8102E` (Maroc / compétition) |
-| `--wc-green` | `#00843D` (terrain) |
-| `--wc-gold` | `#D4AF37` (trophée) |
+| `--wc26-black` | `#050505` |
+| `--wc26-white` | `#F7F4EF` |
+| `--wc26-red` | `#D71920` |
+| `--wc26-green` | `#00A651` |
+| `--wc26-blue` | `#0046AD` |
+| `--wc26-gold` | `#C9A227` |
 
 ## Polices
 
-- **Titres** : Oswald (Google Fonts)
-- **Texte** : Montserrat (Google Fonts)
+- **Titres** : Archivo Black
+- **Texte** : Montserrat
 
-## Assets
+## Fichiers
 
-- `webapp/static/brand/worldcup/logo-worldcup.svg`
-- `webapp/static/brand/worldcup/favicon.svg`
-- `webapp/static/brand/worldcup/stadium-pattern.svg`
-- `webapp/static/img/wc/flags/*.png`
+- `webapp/static/brand/worldcup26/matchcup26-logo.svg`
+- `webapp/static/brand/worldcup26/favicon.svg`
+- `webapp/static/brand/worldcup26/wc26-pattern.svg`
+- `webapp/static/css/wc26-official-inspired.css` — thème global clair
+- `webapp/static/css/worldcup.css` — page `/coupe-du-monde`
 
-## CSS
+## Activation
 
-- `webapp/static/css/wc-global-theme.css` — thème global (toutes les pages)
-- `webapp/static/css/worldcup.css` — page CDM 2026
-
-## Classes utiles
-
-- `wc-app-shell` — enveloppe stade
-- `wc-card` / `.card` — glassmorphism
-- `wc-button-primary` / `.btn-primary` — CTA gradient
-- `wc-badge-live` — statut LIVE
-- `wc-score-card` — carte score
-- `wc-gradient-text` — texte dégradé rouge/vert/or
-
-## Intégration
-
-Le thème est chargé dans `webapp/templates/base.html` :
+Déjà actif dans `webapp/templates/base.html` :
 
 ```html
-<link rel="stylesheet" href="{{ url_for('static', filename='css/wc-global-theme.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wc26-official-inspired.css') }}">
 ```
 
 ## Script
 
 ```bash
-bash scripts/apply-worldcup-theme.sh
+bash scripts/apply-worldcup-2026-official-inspired-theme.sh
 ```
 
 ## Déploiement VPS
@@ -56,11 +46,11 @@ bash scripts/apply-worldcup-theme.sh
 ```bash
 cd /opt/football-bot
 git pull origin main
-bash scripts/apply-worldcup-theme.sh
+bash scripts/apply-worldcup-2026-official-inspired-theme.sh
 pm2 restart football-webapp
 ```
 
 ## Règles
 
-- Ne pas modifier routes, API, auth, base de données
-- Uniquement CSS, templates layout, assets statiques
+- UI uniquement (templates + CSS + assets)
+- Aucune modification routes, Python, API, base de données
