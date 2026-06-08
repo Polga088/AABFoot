@@ -54,7 +54,7 @@ def find_player_by_phone(conn, raw_phone):
     placeholders = ",".join(["?"] * len(candidates))
     return conn.execute(
         f"""
-        SELECT id, name, first_name, last_name, phone, role, active, password_hash
+        SELECT id, name, first_name, last_name, phone, role, active, password_hash, display_name
         FROM players
         WHERE phone IN ({placeholders})
         LIMIT 1
@@ -66,9 +66,10 @@ def find_player_by_phone(conn, raw_phone):
 def player_display_name(player_row):
     if not player_row:
         return ""
-    from player_utils import player_id_label
+    from player_utils import player_public_label
 
-    return player_id_label(player_row)
+    is_admin = player_row.get("role") == "admin"
+    return player_public_label(player_row, is_admin=is_admin)
 
 
 def is_authenticated():

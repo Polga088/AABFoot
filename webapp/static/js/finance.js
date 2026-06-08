@@ -65,6 +65,30 @@ document.getElementById("exportPlayers")?.addEventListener("click", (e) => {
     });
 });
 
+document.querySelectorAll(".cotisation-input").forEach((input) => {
+  input.addEventListener("change", async () => {
+    const playerId = input.dataset.playerId;
+    const raw = input.value.trim();
+    const amount = raw === "" ? null : Number(raw);
+    if (amount !== null && (!Number.isFinite(amount) || amount <= 0)) {
+      alert("Montant invalide");
+      return;
+    }
+    try {
+      const res = await fetch(`/finance/players/${playerId}/cotisation`, {
+        method: "PUT",
+        headers: adminHeaders(),
+        body: JSON.stringify({ cotisation_amount: amount })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      input.value = Number(data.cotisation_amount).toFixed(2);
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+});
+
 document.getElementById("importForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const feedback = document.getElementById("importFeedback");

@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import Blueprint, Response, current_app, jsonify, render_template, request
 
 from auth_utils import admin_page_required
-from player_utils import apply_id_label
+from player_utils import apply_id_label, get_default_cotisation, player_cotisation_amount, player_public_label
 from routes.admin_utils import admin_guard, normalize_phone
 
 
@@ -24,7 +24,9 @@ def finance_page():
           p.first_name,
           p.last_name,
           p.name,
+          p.display_name,
           p.phone,
+          p.cotisation_amount,
           p.active,
           COALESCE(w.balance, 0) AS balance
         FROM players p
@@ -49,16 +51,63 @@ def finance_page():
         LIMIT 200
         """
     ).fetchall()
+    default_cotisation = get_default_cotisation()
+    player_rows = []
+    for row in players:
+        item = dict(row)
+        item["label"] = player_public_label(item, is_admin=True)
+        item["cotisation"] = player_cotisation_amount(item, default_cotisation)
+        item["balance"] = round(float(item["balance"] or 0), 2)
+        player_rows.append(item)
+
     conn.close()
 
     return render_template(
         "finance.html",
         active_page="finance",
-        players=[dict(row) for row in players],
+        players=player_rows,
         transactions=[dict(row) for row in transactions],
-        cotisation_amount=os.getenv("COTISATION_AMOUNT", "10"),
+        cotisation_amount=default_cotisation,
         admin_token_configured=bool(os.getenv("ADMIN_TOKEN", "").strip()),
     )
+
+
+@finance_bp.route("/finance/players/<int:player_id>/cotisation", methods=["PUT"])
+def update_player_cotisation(player_id):
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    payload = request.get_json(silent=True) or {}
+    raw_amount = payload.get("cotisation_amount")
+
+    conn = current_app.get_db_connection()
+    player = conn.execute("SELECT id FROM players WHERE id = ?", (player_id,)).fetchone()
+    if not player:
+        conn.close()
+        return jsonify({"success": False, "error": "player_not_found"}), 404
+
+    if raw_amount is None or raw_amount == "":
+        conn.execute("UPDATE players SET cotisation_amount = NULL WHERE id = ?", (player_id,))
+        effective = get_default_cotisation()
+    else:
+        try:
+            amount = float(raw_amount)
+        except (TypeError, ValueError):
+            conn.close()
+            return jsonify({"success": False, "error": "invalid_amount"}), 400
+        if amount <= 0:
+            conn.close()
+            return jsonify({"success": False, "error": "invalid_amount"}), 400
+        conn.execute(
+            "UPDATE players SET cotisation_amount = ? WHERE id = ?",
+            (amount, player_id),
+        )
+        effective = amount
+
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "cotisation_amount": round(effective, 2)})
 
 
 @finance_bp.route("/finance/credit", methods=["POST"])

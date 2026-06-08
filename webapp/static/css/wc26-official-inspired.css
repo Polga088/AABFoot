@@ -641,3 +641,19 @@ body.matchcup26 .stats-player-link {
     display: none;
   }
 }
+
+body.matchcup26 .cotisation-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.matchcup26 .cotisation-edit .form-input {
+  max-width: 88px;
+  padding: 6px 8px;
+}
+
+body.matchcup26 .player-display-name {
+  min-width: 120px;
+  padding: 6px 8px;
+}

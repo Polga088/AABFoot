@@ -67,6 +67,8 @@ def ensure_player_columns(db_path):
         for col_name, sql in [
             ("first_name", "ALTER TABLE players ADD COLUMN first_name TEXT"),
             ("last_name", "ALTER TABLE players ADD COLUMN last_name TEXT"),
+            ("display_name", "ALTER TABLE players ADD COLUMN display_name TEXT"),
+            ("cotisation_amount", "ALTER TABLE players ADD COLUMN cotisation_amount REAL"),
         ]:
             if col_name not in cols:
                 conn.execute(sql)

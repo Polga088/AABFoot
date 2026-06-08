@@ -54,7 +54,9 @@ function ensurePlayerColumns() {
 
   const alterations = [
     { name: "first_name", sql: "ALTER TABLE players ADD COLUMN first_name TEXT" },
-    { name: "last_name", sql: "ALTER TABLE players ADD COLUMN last_name TEXT" }
+    { name: "last_name", sql: "ALTER TABLE players ADD COLUMN last_name TEXT" },
+    { name: "display_name", sql: "ALTER TABLE players ADD COLUMN display_name TEXT" },
+    { name: "cotisation_amount", sql: "ALTER TABLE players ADD COLUMN cotisation_amount REAL" }
   ];
 
   for (const item of alterations) {

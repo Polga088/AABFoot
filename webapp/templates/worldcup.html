@@ -5,19 +5,34 @@
 {% endblock %}
 {% block content %}
 <div class="wc-page">
-  <header class="wc-hero cdm-hero worldcup-hero banner">
-    <div class="wc-hero-bg" aria-hidden="true"></div>
+  <header class="wc-hero cdm-hero-v2 worldcup-hero banner" role="banner">
+    <div class="cdm-banner-pattern" aria-hidden="true"></div>
+    <div class="cdm-banner-stripe" aria-hidden="true">
+      <span class="cdm-stripe-us"></span>
+      <span class="cdm-stripe-mx"></span>
+      <span class="cdm-stripe-ca"></span>
+    </div>
     <div class="wc-hero-content">
-      <span class="wc-hero-badge">USA · Mexico · Canada · CDM 2026</span>
+      <div class="cdm-host-flags" aria-label="Pays hôtes">
+        <span title="États-Unis">🇺🇸</span>
+        <span title="Mexique">🇲🇽</span>
+        <span title="Canada">🇨🇦</span>
+        <span class="cdm-host-sep">·</span>
+        <span title="Maroc">🇲🇦</span>
+      </div>
+      <span class="wc-hero-badge">FIFA World Cup 26 · MATCHCUP</span>
       <h1 class="wc-hero-title">Coupe du Monde 2026</h1>
-      <p class="wc-hero-sub">48 équipes · 12 groupes · 104 matchs · Horaires <strong>GMT+1</strong></p>
+      <p class="wc-hero-sub">48 équipes · 12 groupes · 104 matchs · Fuseau <strong>GMT+1</strong></p>
       <div class="wc-hero-meta">
-        <span>📅 11 juin — 19 juillet 2026</span>
+        <span class="cdm-date-pill">📅 11 juin — 19 juillet 2026</span>
         <span id="wcUpdatedAt">Mis à jour : {{ wc.updated_at }}</span>
         <button type="button" class="wc-refresh-btn" id="wcRefreshBtn">↻ Actualiser</button>
       </div>
     </div>
-    <div class="wc-trophy" aria-hidden="true">🏆</div>
+    <div class="cdm-banner-visual" aria-hidden="true">
+      <img src="{{ url_for('static', filename='brand/worldcup26/matchcup26-logo.svg') }}" alt="" class="cdm-banner-logo">
+      <span class="cdm-banner-year">26</span>
+    </div>
   </header>
 
   <section class="wc-kpis">

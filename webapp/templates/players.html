@@ -14,7 +14,7 @@
   <p id="playersPageFeedback" class="form-feedback" aria-live="polite"></p>
 
   <form id="playerForm" class="event-form">
-    <p class="metric-sub">Chaque joueur reçoit un identifiant automatique (#1, #2, …) à la création.</p>
+    <p class="metric-sub">Chaque joueur reçoit un identifiant (#1, #2, …). Le <strong>nom</strong> est visible uniquement par l’admin — les autres voient le numéro masqué.</p>
     <div class="form-row form-row-2">
       <div>
         <label class="form-label" for="playerPhone">Téléphone WhatsApp</label>
@@ -39,6 +39,7 @@
       <thead>
         <tr>
           <th>ID</th>
+          <th>Nom (admin)</th>
           <th>Téléphone</th>
           <th>Solde</th>
           <th>Statut</th>
@@ -49,6 +50,16 @@
         {% for p in players %}
         <tr data-player-id="{{ p.id }}" class="{{ 'row-inactive' if not p.active }}">
           <td><strong>#{{ p.id }}</strong></td>
+          <td>
+            <input
+              type="text"
+              class="form-input player-display-name"
+              data-player-id="{{ p.id }}"
+              value="{{ p.display_name or '' }}"
+              placeholder="Ex. Youssef"
+              maxlength="40"
+            >
+          </td>
           <td>{{ p.phone }}</td>
           <td>{{ "%.2f"|format(p.balance) }} dh</td>
           <td>
@@ -70,7 +81,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="metric-sub">Aucun joueur.</td></tr>
+        <tr><td colspan="6" class="metric-sub">Aucun joueur.</td></tr>
         {% endfor %}
       </tbody>
     </table>

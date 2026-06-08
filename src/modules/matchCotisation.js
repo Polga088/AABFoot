@@ -1,8 +1,20 @@
 const { db } = require("../db/database");
 const wallet = require("./wallet");
 
-function getCotisationAmount() {
+function getDefaultCotisationAmount() {
   return Number(process.env.COTISATION_AMOUNT || 10);
+}
+
+function getCotisationAmount(playerId) {
+  const defaultAmount = getDefaultCotisationAmount();
+  if (!playerId) return defaultAmount;
+  const row = db
+    .prepare("SELECT cotisation_amount FROM players WHERE id = ?")
+    .get(playerId);
+  const custom = row?.cotisation_amount;
+  if (custom === null || custom === undefined) return defaultAmount;
+  const parsed = Number(custom);
+  return parsed > 0 ? parsed : defaultAmount;
 }
 
 function getAvailabilityRow(playerId, matchId) {
@@ -28,7 +40,7 @@ function setCotisationCharged(playerId, matchId, charged) {
 }
 
 function debitForDispo(playerId, matchId) {
-  const amount = getCotisationAmount();
+  const amount = getCotisationAmount(playerId);
   const description = `Cotisation match #${matchId} (dispo)`;
 
   const tx = db.transaction(() => {
@@ -54,7 +66,7 @@ function debitForDispo(playerId, matchId) {
 }
 
 function refundDispo(playerId, matchId) {
-  const amount = getCotisationAmount();
+  const amount = getCotisationAmount(playerId);
   const description = `Remboursement match #${matchId} (changement vote)`;
   wallet.credit(playerId, amount, description);
   setCotisationCharged(playerId, matchId, false);
@@ -74,7 +86,7 @@ function applyVoteCotisation(playerId, matchId, newStatus) {
   if (newStatus === "yes" && !wasCharged) {
     try {
       debitForDispo(playerId, matchId);
-      return { action: "debited", amount: getCotisationAmount() };
+      return { action: "debited", amount: getCotisationAmount(playerId) };
     } catch (error) {
       console.error(`Debit cotisation impossible joueur #${playerId}:`, error.message);
       return { action: "debit_failed", error: error.message };
@@ -83,7 +95,7 @@ function applyVoteCotisation(playerId, matchId, newStatus) {
 
   if (newStatus !== "yes" && wasCharged) {
     refundDispo(playerId, matchId);
-    return { action: "refunded", amount: getCotisationAmount() };
+    return { action: "refunded", amount: getCotisationAmount(playerId) };
   }
 
   return { action: "none" };

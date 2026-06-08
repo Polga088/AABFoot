@@ -2,49 +2,101 @@
 .wc-page { margin: 0 0 2rem; }
 
 .wc-hero,
-.cdm-hero,
+.cdm-hero-v2,
 .worldcup-hero {
   position: relative;
   overflow: hidden;
   border-radius: var(--wc26-radius, 20px);
   padding: 2rem 2.5rem;
   margin-bottom: 1.25rem;
-  background: var(--wc26-black);
+  background: linear-gradient(135deg, #0b1f3a 0%, #152a52 42%, #1a335f 100%);
   color: #fff;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--wc26-shadow-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 190px;
+  gap: 1.5rem;
+  min-height: 210px;
 }
 
-.wc-hero::before,
-.cdm-hero::before,
-.worldcup-hero::before {
-  content: "26";
+.cdm-banner-pattern {
   position: absolute;
-  right: 40px;
-  top: 0;
-  font-family: "Archivo Black", Impact, sans-serif;
-  font-size: 140px;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.06);
+  inset: 0;
+  background: url("../brand/worldcup26/wc26-pattern.svg") center / 520px repeat;
+  opacity: 0.14;
   pointer-events: none;
 }
 
-.wc-hero::after,
-.cdm-hero::after,
-.worldcup-hero::after {
+.cdm-banner-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  z-index: 2;
+}
+
+.cdm-stripe-us { background: #d71920; }
+.cdm-stripe-mx { background: #00a651; }
+.cdm-stripe-ca { background: #0046ad; }
+
+.cdm-hero-v2::after {
   content: "";
   position: absolute;
   inset: auto 0 0 0;
   height: 4px;
   background: linear-gradient(90deg, #d71920, #00a651, #0046ad);
+  z-index: 2;
 }
 
-.wc-hero-bg {
-  display: none;
+.cdm-host-flags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.35rem;
+  margin-bottom: 10px;
+}
+
+.cdm-host-sep {
+  opacity: 0.5;
+  font-size: 1rem;
+}
+
+.cdm-date-pill {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.cdm-banner-visual {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.cdm-banner-logo {
+  width: 88px;
+  height: auto;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+}
+
+.cdm-banner-year {
+  font-family: "Archivo Black", Impact, sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.55) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-top: -8px;
 }
 
 .wc-hero-content {
@@ -108,11 +160,14 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-.wc-trophy {
-  font-size: 5rem;
-  opacity: 0.4;
-  position: relative;
-  z-index: 1;
+@media (max-width: 720px) {
+  .cdm-banner-visual {
+    display: none;
+  }
+
+  .cdm-hero-v2 {
+    padding: 1.5rem 1.25rem;
+  }
 }
 
 /* KPIs blancs */

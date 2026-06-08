@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, current_app, redirect, render_template, url_for
 
 from auth_utils import login_required, logout_player, mask_phone
-from player_utils import player_id_label
+from auth_utils import is_session_admin
+from player_utils import player_id_label, player_public_label
 
 
 wallet_bp = Blueprint("wallet", __name__, url_prefix="/")
@@ -66,7 +67,7 @@ def wallet_dashboard():
     conn = current_app.get_db_connection()
     player = conn.execute(
         """
-        SELECT id, name, first_name, last_name, phone, created_at, active
+        SELECT id, name, first_name, last_name, phone, display_name, created_at, active
         FROM players WHERE id = ? LIMIT 1
         """,
         (player_id,),
@@ -154,7 +155,7 @@ def wallet_dashboard():
 
     conn.close()
 
-    player_name = player_id_label(player)
+    player_name = player_public_label(dict(player), is_session_admin())
     initials = f"#{player['id']}"[-2:] if player["id"] else "??"
     masked_phone = mask_phone(player["phone"] or "")
 

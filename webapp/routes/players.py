@@ -17,6 +17,7 @@ def _fetch_players(conn, include_inactive=False):
           p.first_name,
           p.last_name,
           p.name,
+          p.display_name,
           p.phone,
           p.role,
           p.active,
@@ -110,6 +111,7 @@ def update_player(player_id):
     phone_raw = payload.get("phone")
     phone = normalize_phone(phone_raw) if phone_raw else None
     active = payload.get("active")
+    display_name_raw = payload.get("display_name")
 
     if not phone:
         return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
@@ -130,9 +132,13 @@ def update_player(player_id):
             return jsonify({"success": False, "error": "Ce numero existe deja"}), 409
 
     active_value = 1 if active is not False else 0
+    display_name = None
+    if display_name_raw is not None:
+        display_name = (str(display_name_raw).strip() or None)
+
     conn.execute(
-        "UPDATE players SET phone = ?, active = ? WHERE id = ?",
-        (phone, active_value, player_id),
+        "UPDATE players SET phone = ?, active = ?, display_name = ? WHERE id = ?",
+        (phone, active_value, display_name, player_id),
     )
     apply_id_label(conn, player_id)
 

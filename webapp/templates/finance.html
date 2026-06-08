@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<span data-default-cotisation="{{ cotisation_amount }}" hidden></span>
 <section class="card">
   <header class="card-title">
     <span>Finance & cotisations</span>
     {% if admin_token_configured %}<span class="badge badge-green">Admin OK</span>{% endif %}
   </header>
   <p class="metric-sub">
-    Règle : vote <strong>Oui</strong> sur le sondage → <strong>-{{ cotisation_amount }} dh</strong> du wallet.
+    Règle : vote <strong>Oui</strong> sur le sondage → débit du wallet (montant par joueur, défaut <strong>{{ cotisation_amount }} dh</strong>).
     Vote <strong>Non</strong> ou <strong>Peut-être</strong> → solde inchangé.
-    Chaque joueur peut alimenter son solde librement (crédit admin ou import CSV).
+    Modifiez la cotisation individuelle dans le tableau ci-dessous.
   </p>
 </section>
 
@@ -22,7 +23,7 @@
           <option value="">Choisir...</option>
           {% for p in players %}
           {% if p.active %}
-          <option value="{{ p.id }}">#{{ p.id }} — {{ p.phone }} ({{ "%.2f"|format(p.balance) }} dh)</option>
+          <option value="{{ p.id }}">#{{ p.id }} — {{ p.label }} ({{ "%.2f"|format(p.balance) }} dh)</option>
           {% endif %}
           {% endfor %}
         </select>
@@ -65,13 +66,28 @@
   <div class="wallet-table-wrap">
     <table>
       <thead>
-        <tr><th>ID</th><th>Téléphone</th><th>Solde</th></tr>
+        <tr><th>ID</th><th>Nom</th><th>Téléphone</th><th>Cotisation</th><th>Solde</th></tr>
       </thead>
       <tbody>
         {% for p in players %}
-        <tr>
+        <tr data-player-id="{{ p.id }}">
           <td><strong>#{{ p.id }}</strong></td>
+          <td>{{ p.label }}</td>
           <td>{{ p.phone }}</td>
+          <td>
+            <div class="cotisation-edit">
+              <input
+                type="number"
+                class="form-input cotisation-input"
+                data-player-id="{{ p.id }}"
+                min="0.01"
+                step="0.01"
+                value="{{ '%.2f'|format(p.cotisation) }}"
+                title="Vide = défaut {{ cotisation_amount }} dh"
+              >
+              <span class="metric-sub">dh</span>
+            </div>
+          </td>
           <td class="{% if p.balance >= 10 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(p.balance) }} dh</td>
         </tr>
         {% endfor %}

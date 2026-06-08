@@ -47,6 +47,20 @@ document.getElementById("playerForm")?.addEventListener("submit", async (event) 
   }
 });
 
+async function savePlayer(player, { phone, displayName }) {
+  const res = await fetch(`/joueurs/${player.id}`, {
+    method: "PUT",
+    headers: adminHeaders(),
+    body: JSON.stringify({
+      phone: phone.trim(),
+      display_name: displayName,
+      active: true
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseError(data, res.status));
+}
+
 document.querySelectorAll(".btn-edit-player").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const player = playersById.get(String(btn.dataset.playerId));
@@ -59,19 +73,30 @@ document.querySelectorAll(".btn-edit-player").forEach((btn) => {
     if (phone === null) return;
 
     try {
-      const res = await fetch(`/joueurs/${player.id}`, {
-        method: "PUT",
-        headers: adminHeaders(),
-        body: JSON.stringify({
-          phone: phone.trim(),
-          active: true
-        })
+      await savePlayer(player, {
+        phone,
+        displayName: player.display_name || ""
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(parseError(data, res.status));
       window.location.reload();
     } catch (error) {
       alert(error.message);
+    }
+  });
+});
+
+document.querySelectorAll(".player-display-name").forEach((input) => {
+  input.addEventListener("change", async () => {
+    const player = playersById.get(String(input.dataset.playerId));
+    if (!player) return;
+    const pageFeedback = document.getElementById("playersPageFeedback");
+    try {
+      await savePlayer(player, {
+        phone: (player.phone || "").replace("@c.us", ""),
+        displayName: input.value.trim()
+      });
+      setFeedback(pageFeedback, `Nom enregistre pour #${player.id}.`);
+    } catch (error) {
+      setFeedback(pageFeedback, error.message, true);
     }
   });
 });

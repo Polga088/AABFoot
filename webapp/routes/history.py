@@ -18,7 +18,7 @@ from match_stats_db import (
     replace_match_goals,
     sync_motm_winner,
 )
-from player_utils import player_id_label
+from player_utils import apply_labels_to_goals, player_id_label
 
 
 history_bp = Blueprint("history", __name__, url_prefix="/")
@@ -39,10 +39,10 @@ def _roles_for_size(size):
     return ["ATT"]
 
 
-def _load_players_by_ids(conn, ids):
+def _load_players_by_ids(conn, ids, is_admin=False):
     if not ids:
         return []
-    names = load_players_map(conn, ids)
+    names = load_players_map(conn, ids, is_admin=is_admin)
     roles = _roles_for_size(len(ids))
     return [
         {
@@ -145,6 +145,7 @@ def match_detail(match_id):
 
     match_dict = dict(match)
     match_dict["title"] = _match_title(match_dict)
+    is_admin = is_session_admin()
 
     lineup_row = conn.execute(
         """
@@ -163,13 +164,20 @@ def match_detail(match_id):
             "id": lineup_row["id"],
             "color_a": lineup_row["color_a"],
             "color_b": lineup_row["color_b"],
-            "team_a": _load_players_by_ids(conn, team_a_ids),
-            "team_b": _load_players_by_ids(conn, team_b_ids),
+            "team_a": _load_players_by_ids(conn, team_a_ids, is_admin=is_admin),
+            "team_b": _load_players_by_ids(conn, team_b_ids, is_admin=is_admin),
         }
         lineup_players = lineup["team_a"] + lineup["team_b"]
 
-    goals = fetch_match_goals(conn, match_id)
+    goals = apply_labels_to_goals(fetch_match_goals(conn, match_id), conn, is_admin)
     motm_tally = fetch_motm_tally(conn, match_id)
+    if motm_tally:
+        motm_ids = [row.get("player_id") for row in motm_tally if row.get("player_id")]
+        motm_labels = load_players_map(conn, motm_ids, is_admin=is_admin)
+        for row in motm_tally:
+            pid = row.get("player_id")
+            if pid:
+                row["name"] = motm_labels.get(pid, player_id_label(pid))
 
     voter_id = session.get("player_id")
     user_vote = None
@@ -219,7 +227,7 @@ def match_detail(match_id):
             "can_vote_motm": can_vote,
             "user_motm_vote": user_vote,
             "media": media,
-            "is_admin": is_session_admin(),
+            "is_admin": is_admin,
         }
     )
 

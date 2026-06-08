@@ -66,15 +66,10 @@ def lineup_player_ids(conn, match_id):
     return list(dict.fromkeys(team_a + team_b))
 
 
-def load_players_map(conn, player_ids):
-    if not player_ids:
-        return {}
-    placeholders = ",".join(["?"] * len(player_ids))
-    rows = conn.execute(
-        f"SELECT id, name FROM players WHERE id IN ({placeholders})",
-        tuple(player_ids),
-    ).fetchall()
-    return {row["id"]: row["name"] for row in rows}
+def load_players_map(conn, player_ids, is_admin=False):
+    from player_utils import load_player_labels
+
+    return load_player_labels(conn, player_ids, is_admin)
 
 
 def fetch_match_goals(conn, match_id):
