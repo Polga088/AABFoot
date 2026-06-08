@@ -124,6 +124,21 @@ body {
   background: var(--gold-light);
 }
 
+.nav-links a.wc-nav-link {
+  background: linear-gradient(135deg, var(--gold), #e8c547);
+  color: var(--green-dark) !important;
+  font-weight: 700 !important;
+  border-radius: 999px;
+  padding: 6px 12px !important;
+  border-bottom: none;
+}
+
+.nav-links a.wc-nav-link:hover,
+.nav-links a.wc-nav-link.active {
+  background: linear-gradient(135deg, #e8c547, var(--gold));
+  color: var(--green-dark) !important;
+}
+
 .site-footer {
   display: flex;
   align-items: center;
