@@ -1,0 +1,16 @@
+---
+description: Pousser chaque modification sur GitHub (branche main) après les changements de code
+alwaysApply: true
+---
+
+# Git — push systématique sur GitHub
+
+Après toute modification de code dans ce projet :
+
+1. Exclure `.DS_Store`, `football.db`, `node_modules/`, `wc2026_cache.json`, `.env` et secrets.
+2. Committer sur une branche `cursor/` descriptive, ou directement sur `main` si la tâche est petite.
+3. **Toujours pousser sur GitHub** (`git push origin <branche>`).
+4. Fusionner dans `main` et pousser `main` pour que le VPS puisse déployer avec `git pull origin main`.
+5. Ne pas demander confirmation pour le push sauf si l'utilisateur l'interdit explicitement.
+
+Message de commit : concis, en anglais, focus sur le « pourquoi ».
