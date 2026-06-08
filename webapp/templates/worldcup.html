@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/worldcup.css') }}">
+
+<div class="wc-page">
+  <header class="wc-hero">
+    <div class="wc-hero-bg" aria-hidden="true"></div>
+    <div class="wc-hero-content">
+      <span class="wc-hero-badge">FIFA · USA · Mexique · Canada</span>
+      <h1 class="wc-hero-title">Coupe du Monde 2026</h1>
+      <p class="wc-hero-sub">48 équipes · 12 groupes · 104 matchs · Horaires <strong>GMT+1</strong></p>
+      <div class="wc-hero-meta">
+        <span>📅 11 juin — 19 juillet 2026</span>
+        <span id="wcUpdatedAt">Mis à jour : {{ wc.updated_at }}</span>
+        <button type="button" class="wc-refresh-btn" id="wcRefreshBtn">↻ Actualiser</button>
+      </div>
+    </div>
+    <div class="wc-trophy" aria-hidden="true">🏆</div>
+  </header>
+
+  <section class="wc-kpis">
+    <article class="wc-kpi">
+      <span class="wc-kpi-val">{{ wc.total_matches }}</span>
+      <span class="wc-kpi-label">Matchs</span>
+    </article>
+    <article class="wc-kpi">
+      <span class="wc-kpi-val">{{ wc.finished_matches }}</span>
+      <span class="wc-kpi-label">Terminés</span>
+    </article>
+    <article class="wc-kpi">
+      <span class="wc-kpi-val">12</span>
+      <span class="wc-kpi-label">Groupes</span>
+    </article>
+    <article class="wc-kpi accent">
+      <span class="wc-kpi-val">48</span>
+      <span class="wc-kpi-label">Équipes</span>
+    </article>
+  </section>
+
+  <nav class="wc-tabs" role="tablist">
+    <button type="button" class="wc-tab active" data-tab="groups">Groupes</button>
+    <button type="button" class="wc-tab" data-tab="schedule">Calendrier</button>
+    <button type="button" class="wc-tab" data-tab="knockout">Phase finale</button>
+  </nav>
+
+  {% if not wc.groups %}
+  <section class="card wc-empty-state">
+    <p>Calendrier CDM 2026 non chargé. Sur le serveur, exécutez :</p>
+    <code>bash scripts/fetch-wc2026.sh && pm2 restart football-webapp</code>
+  </section>
+  {% endif %}
+
+  <section class="wc-panel active" id="panel-groups" data-panel="groups">
+    <div class="wc-groups-grid">
+      {% for letter in wc.groups %}
+      <article class="wc-group-card">
+        <header class="wc-group-head">
+          <span class="wc-group-letter">Groupe {{ letter }}</span>
+        </header>
+        {% if wc.standings.get(letter) %}
+        <table class="wc-standings-table">
+          <thead>
+            <tr><th></th><th>Équipe</th><th>J</th><th>+/-</th><th>Pts</th></tr>
+          </thead>
+          <tbody>
+            {% for row in wc.standings[letter] %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td class="wc-team-cell">
+                {% if row.flag %}<img src="{{ row.flag }}" alt="" class="wc-flag" loading="lazy">{% endif %}
+                {{ row.team }}
+              </td>
+              <td>{{ row.played }}</td>
+              <td>{{ row.gf }}-{{ row.ga }}</td>
+              <td><strong>{{ row.pts }}</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <ul class="wc-team-list">
+          {% for team in wc.group_teams.get(letter, []) %}
+          <li class="wc-team-cell">
+            {% if team.flag %}<img src="{{ team.flag }}" alt="" class="wc-flag" loading="lazy">{% endif %}
+            {{ team.name }}
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="wc-standings-pending">Classement disponible après les premiers résultats.</p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="wc-panel" id="panel-schedule" data-panel="schedule">
+    <div class="wc-filter-row">
+      <label class="form-label">Filtrer par groupe</label>
+      <select id="wcGroupFilter" class="form-input wc-select">
+        <option value="">Tous les matchs</option>
+        {% for letter in wc.groups %}
+        <option value="{{ letter }}">Groupe {{ letter }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="wc-matches-list" id="wcScheduleList">
+      {% for m in wc.group_matches %}
+      <article class="wc-match-card status-{{ m.status }}" data-group="{{ m.group_letter }}">
+        <div class="wc-match-meta">
+          <span class="wc-match-group">Groupe {{ m.group_letter }}</span>
+          <span class="wc-match-round">{{ m.round }}</span>
+        </div>
+        <div class="wc-match-teams">
+          <div class="wc-match-team">
+            {% if m.team1_flag %}<img src="{{ m.team1_flag }}" alt="" class="wc-flag" loading="lazy">{% endif %}
+            <span>{{ m.team1 }}</span>
+          </div>
+          <div class="wc-match-score">
+            {% if m.score %}
+            <strong>{{ m.score.home }} - {{ m.score.away }}</strong>
+            {% elif m.status == 'live' %}
+            <span class="wc-live">LIVE</span>
+            {% else %}
+            <span class="wc-vs">vs</span>
+            {% endif %}
+          </div>
+          <div class="wc-match-team away">
+            {% if m.team2_flag %}<img src="{{ m.team2_flag }}" alt="" class="wc-flag" loading="lazy">{% endif %}
+            <span>{{ m.team2 }}</span>
+          </div>
+        </div>
+        <div class="wc-match-footer">
+          <span>🕐 {{ m.date_gmt1 }} · {{ m.time_gmt1 }} GMT+1</span>
+          <span>📍 {{ m.ground }}</span>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="wc-panel" id="panel-knockout" data-panel="knockout">
+    <div class="wc-matches-list">
+      {% for m in wc.knockout_matches %}
+      <article class="wc-match-card status-{{ m.status }} knockout">
+        <div class="wc-match-meta">
+          <span class="wc-match-group">{{ m.round }}</span>
+          {% if m.num %}<span class="wc-match-round">#{{ m.num }}</span>{% endif %}
+        </div>
+        <div class="wc-match-teams">
+          <div class="wc-match-team"><span>{{ m.team1 }}</span></div>
+          <div class="wc-match-score">
+            {% if m.score %}
+            <strong>{{ m.score.home }} - {{ m.score.away }}</strong>
+            {% else %}
+            <span class="wc-vs">vs</span>
+            {% endif %}
+          </div>
+          <div class="wc-match-team away"><span>{{ m.team2 }}</span></div>
+        </div>
+        <div class="wc-match-footer">
+          <span>🕐 {{ m.date_gmt1 }} · {{ m.time_gmt1 }} GMT+1</span>
+          <span>📍 {{ m.ground }}</span>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if wc.upcoming %}
+  <section class="wc-upcoming card">
+    <header class="card-title"><span>Prochains matchs (GMT+1)</span></header>
+    <div class="wc-upcoming-row">
+      {% for m in wc.upcoming %}
+      <div class="wc-upcoming-chip">
+        <span class="wc-upcoming-time">{{ m.time_gmt1 }}</span>
+        <span>{{ m.team1 }} vs {{ m.team2 }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/worldcup.js') }}"></script>
+{% endblock %}

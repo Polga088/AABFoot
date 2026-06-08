@@ -8,6 +8,7 @@ from routes.calendar import calendar_bp
 from routes.finance import finance_bp
 from routes.history import history_bp
 from routes.stats import stats_bp
+from routes.worldcup import worldcup_bp
 from match_stats_db import ensure_match_stats_tables
 from routes.players import players_bp
 from routes.wallet import wallet_bp
@@ -187,6 +188,7 @@ def create_app():
     app.register_blueprint(calendar_bp)
     app.register_blueprint(history_bp)
     app.register_blueprint(stats_bp)
+    app.register_blueprint(worldcup_bp)
     app.register_blueprint(wallet_bp)
     app.register_blueprint(players_bp)
     app.register_blueprint(finance_bp)
