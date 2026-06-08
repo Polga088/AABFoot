@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Foot AAB</title>
+  <title>Foot AAB · CDM 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/wc-global-theme.css') }}">
   {% block extra_css %}{% endblock %}
   <link rel="icon" href="{{ url_for('static', filename='img/aab-logo.png') }}" type="image/png">
   <script>window.FOOTBOT_IS_ADMIN = {{ 'true' if user_is_admin else 'false' }};</script>
   <script src="{{ url_for('static', filename='js/admin-api.js') }}"></script>
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}theme-wc-app{% endblock %}">
   <header class="site-header">
     <nav class="navbar">
       <a href="/calendrier" class="nav-brand">
@@ -24,6 +25,7 @@
         >
         <span class="nav-brand-text">
           <span class="nav-brand-title">Foot AAB</span>
+          <span class="nav-brand-sub">Coupe du Monde 2026</span>
         </span>
       </a>
       <div class="nav-links">
@@ -45,6 +47,21 @@
       </div>
     </nav>
     <div class="brand-accent-bar" aria-hidden="true"></div>
+    <div class="wc-app-banner">
+      <div class="wc-app-banner-inner">
+        <div>
+          <span class="wc-banner-trophy" aria-hidden="true">🏆</span>
+          <span class="wc-banner-title">FIFA World Cup 2026</span>
+          <span class="wc-banner-sub"> · USA · México · Canada · 11 juin — 19 juillet</span>
+        </div>
+        <div class="wc-banner-flags" aria-label="Pays hôtes">
+          <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="USA" width="28" height="19">
+          <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="México" width="28" height="19">
+          <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="Canada" width="28" height="19">
+          <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="Maroc" width="28" height="19" title="Maroc">
+        </div>
+      </div>
+    </div>
   </header>
   <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -59,8 +76,18 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer">
+    <div class="wc-footer-flags" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/fr.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/br.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/es.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/de.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="">
+      <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="">
+    </div>
     <img src="{{ url_for('static', filename='img/aab-logo.png') }}" alt="" class="footer-logo">
-    <span>Foot AAB — gestion d'équipe</span>
+    <span class="wc-footer-tagline">Foot AAB — Coupe du Monde 2026</span>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

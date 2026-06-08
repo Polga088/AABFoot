@@ -1,0 +1,495 @@
+/* ═══════════════════════════════════════════════════════════
+   Foot AAB — Thème global Coupe du Monde 2026
+   Couleurs · bannières · drapeaux · typographie sport
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --wc-green: #0a4d2e;
+  --wc-green-mid: #1a7a4c;
+  --wc-green-dark: #041a10;
+  --wc-gold: #d4af37;
+  --wc-gold-bright: #f5d547;
+  --wc-red: #c41e3a;
+  --wc-blue: #1e3a8a;
+  --wc-card: rgba(255, 255, 255, 0.97);
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-condensed: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+
+/* ——— Fond & typographie globale ——— */
+body.theme-wc-app {
+  font-family: var(--font-body);
+  color: #e8f0eb;
+  background:
+    url("../img/wc/pitch-pattern.svg") repeat,
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(30, 58, 138, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+    linear-gradient(165deg, #0b1f14 0%, #0a4d2e 35%, #062a18 70%, #041a10 100%);
+  background-size: 120px 120px, auto, auto, auto;
+}
+
+body.theme-wc-app h1,
+body.theme-wc-app h2,
+body.theme-wc-app h3,
+body.theme-wc-app .card-title,
+body.theme-wc-app .metric-label,
+body.theme-wc-app .auth-title,
+body.theme-wc-app .stats-hero-title,
+body.theme-wc-app .nav-brand-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ——— Header & navigation ——— */
+body.theme-wc-app .site-header {
+  background: linear-gradient(180deg, #041a10 0%, #0a4d2e 100%);
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-wc-app .brand-accent-bar {
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--wc-green) 0%,
+    var(--wc-gold) 20%,
+    #fff 40%,
+    var(--wc-gold) 60%,
+    var(--wc-red) 80%,
+    var(--wc-blue) 100%
+  );
+}
+
+body.theme-wc-app .nav-brand-title {
+  color: #fff;
+  font-size: 1.15rem;
+}
+
+body.theme-wc-app .nav-brand-sub {
+  color: var(--wc-gold-bright);
+  font-family: var(--font-condensed);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+body.theme-wc-app .nav-links a {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-condensed);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom-color: transparent;
+}
+
+body.theme-wc-app .nav-links a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-wc-app .nav-links a.active:not(.wc-nav-link) {
+  color: var(--wc-gold-bright);
+  border-bottom-color: var(--wc-gold);
+  background: rgba(212, 175, 55, 0.15);
+}
+
+body.theme-wc-app .nav-links a.wc-nav-link {
+  background: linear-gradient(135deg, var(--wc-gold), var(--wc-gold-bright));
+  color: var(--wc-green-dark) !important;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.45);
+}
+
+body.theme-wc-app .nav-user {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--wc-gold-bright);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+body.theme-wc-app .nav-logout {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+body.theme-wc-app .nav-logout:hover {
+  color: var(--wc-red);
+}
+
+/* ——— Bannière CDM ——— */
+.wc-app-banner {
+  background: linear-gradient(90deg, var(--wc-blue) 0%, var(--wc-green) 40%, var(--wc-green) 60%, var(--wc-red) 100%);
+  padding: 6px 1.5rem;
+  overflow: hidden;
+}
+
+.wc-app-banner-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wc-banner-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.wc-banner-sub {
+  font-family: var(--font-condensed);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wc-banner-flags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wc-banner-flags img {
+  width: 28px;
+  height: 19px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.wc-banner-trophy {
+  font-size: 1.1rem;
+  margin-right: 4px;
+}
+
+/* ——— Cartes & métriques ——— */
+body.theme-wc-app .card,
+body.theme-wc-app .metric,
+body.theme-wc-app .auth-card {
+  background: var(--wc-card);
+  border-color: rgba(212, 175, 55, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  color: var(--text);
+}
+
+body.theme-wc-app .card-title {
+  color: var(--wc-green);
+  font-size: 1.05rem;
+}
+
+body.theme-wc-app .metric {
+  border-top: 3px solid var(--wc-gold);
+  background: linear-gradient(180deg, #fff 0%, #fffbf0 100%);
+}
+
+body.theme-wc-app .metric-label {
+  color: var(--wc-green);
+  font-size: 11px;
+}
+
+body.theme-wc-app .metric-val {
+  color: var(--wc-green-dark);
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+}
+
+body.theme-wc-app .metric-sub {
+  color: var(--text-secondary);
+}
+
+/* ——— Formulaires ——— */
+body.theme-wc-app .form-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-condensed);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+body.theme-wc-app .card .form-label,
+body.theme-wc-app .auth-card .form-label {
+  color: var(--wc-green);
+}
+
+body.theme-wc-app .form-input,
+body.theme-wc-app select.form-input,
+body.theme-wc-app textarea.form-input {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  color: var(--wc-green-dark);
+  font-family: var(--font-body);
+}
+
+body.theme-wc-app .form-input:focus,
+body.theme-wc-app select.form-input:focus {
+  border-color: var(--wc-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+  outline: none;
+}
+
+body.theme-wc-app .form-feedback {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.theme-wc-app .card .form-feedback,
+body.theme-wc-app .auth-card .form-feedback {
+  color: var(--text);
+}
+
+body.theme-wc-app .form-feedback.is-error {
+  color: #ffb3b3;
+  background: rgba(196, 30, 58, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+/* ——— Boutons ——— */
+body.theme-wc-app .btn {
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.theme-wc-app .btn-green,
+body.theme-wc-app .btn-primary {
+  background: linear-gradient(180deg, var(--wc-gold) 0%, #b8941f 100%);
+  color: var(--wc-green-dark);
+  border-color: #b8941f;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+
+body.theme-wc-app .btn-green:hover,
+body.theme-wc-app .btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.45);
+}
+
+body.theme-wc-app .btn:not(.btn-green):not(.btn-primary):not(.btn-danger) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+body.theme-wc-app .card .btn:not(.btn-green):not(.btn-primary):not(.btn-danger) {
+  background: #fff;
+  color: var(--wc-green);
+  border-color: rgba(10, 77, 46, 0.25);
+}
+
+/* ——— Badges ——— */
+body.theme-wc-app .badge-green {
+  background: rgba(10, 77, 46, 0.15);
+  color: var(--wc-green);
+  border-color: rgba(10, 77, 46, 0.25);
+}
+
+body.theme-wc-app .badge-amber {
+  background: rgba(212, 175, 55, 0.2);
+  color: #7a5c00;
+}
+
+/* ——— Calendrier ——— */
+body.theme-wc-app .calendar-head div {
+  color: var(--wc-gold-bright);
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+body.theme-wc-app .calendar-cell {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+body.theme-wc-app .calendar-cell.has-events {
+  background: linear-gradient(180deg, #e8f5ee 0%, #fff 100%);
+}
+
+body.theme-wc-app .calendar-cell.today {
+  outline-color: var(--wc-gold);
+  box-shadow: 0 0 0 2px var(--wc-gold);
+}
+
+body.theme-wc-app .cell-event {
+  background: rgba(255, 255, 255, 0.9);
+  border-left-color: var(--wc-green);
+}
+
+body.theme-wc-app .cell-event-training {
+  border-left-color: var(--wc-blue);
+}
+
+/* ——— Tableaux ——— */
+body.theme-wc-app .card table thead th,
+body.theme-wc-app .wallet-table-wrap thead th,
+body.theme-wc-app .stats-table th {
+  background: linear-gradient(180deg, var(--wc-green) 0%, var(--wc-green-mid) 100%);
+  color: #fff;
+  border-bottom-color: var(--wc-gold);
+  font-family: var(--font-condensed);
+}
+
+body.theme-wc-app .card table tbody tr:hover,
+body.theme-wc-app .stats-table tbody tr:hover {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+body.theme-wc-app .stats-hero {
+  background: linear-gradient(135deg, var(--wc-green) 0%, var(--wc-blue) 100%);
+  color: #fff;
+  border: 2px solid var(--wc-gold);
+}
+
+body.theme-wc-app .stats-hero-title {
+  color: #fff;
+}
+
+body.theme-wc-app .stats-hero-sub {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+body.theme-wc-app .stats-kpi-grid .metric {
+  border-top-color: var(--wc-gold);
+}
+
+body.theme-wc-app .stats-player-link {
+  color: var(--wc-green);
+  font-weight: 600;
+}
+
+body.theme-wc-app .stats-player-link:hover {
+  color: var(--gold-dark);
+}
+
+/* ——— Filtres & listes matchs ——— */
+body.theme-wc-app .pill {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+body.theme-wc-app .pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--wc-gold);
+}
+
+body.theme-wc-app .active-pill {
+  background: linear-gradient(180deg, var(--wc-gold) 0%, #b8941f 100%);
+  color: var(--wc-green-dark);
+  border-color: var(--wc-gold);
+}
+
+body.theme-wc-app .match-card {
+  background: var(--wc-card);
+  border-color: rgba(212, 175, 55, 0.2);
+  color: var(--text);
+}
+
+body.theme-wc-app .active-card {
+  border-color: var(--wc-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+body.theme-wc-app .event-item {
+  background: var(--wc-card);
+  border-color: rgba(212, 175, 55, 0.15);
+}
+
+/* ——— Progress & divers ——— */
+body.theme-wc-app .auth-card {
+  border-top: 4px solid var(--wc-gold);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-wc-app .auth-title {
+  color: var(--wc-green);
+  font-size: 1.75rem;
+}
+
+body.theme-wc-app .auth-sub,
+body.theme-wc-app .auth-hint,
+body.theme-wc-app .auth-footer-note {
+  color: var(--text-secondary);
+}
+
+/* ——— Footer ——— */
+body.theme-wc-app .site-footer {
+  background: var(--wc-green-dark);
+  color: rgba(255, 255, 255, 0.55);
+  border-top: 2px solid var(--wc-gold);
+  flex-direction: column;
+  gap: 12px;
+  padding: 1.5rem 1rem 2rem;
+}
+
+body.theme-wc-app .wc-footer-flags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+body.theme-wc-app .wc-footer-flags img {
+  width: 32px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 2px;
+  opacity: 0.85;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+body.theme-wc-app .wc-footer-flags img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+body.theme-wc-app .wc-footer-tagline {
+  font-family: var(--font-condensed);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--wc-gold);
+}
+
+/* ——— Progress & divers ——— */
+body.theme-wc-app .progress-fill {
+  background: linear-gradient(90deg, var(--wc-green) 0%, var(--wc-gold) 100%);
+}
+
+body.theme-wc-app .lineup-pool-player.selected {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--wc-gold);
+}
+
+body.theme-wc-app .wallet-balance-val {
+  color: var(--wc-green);
+  font-family: var(--font-display);
+}
+
+@media (max-width: 768px) {
+  .wc-app-banner-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .wc-banner-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+  }
+
+  .wc-banner-sub {
+    display: none;
+  }
+}

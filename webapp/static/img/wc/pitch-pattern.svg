@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#0a4d2e"/>
+  <path d="M0 60h120M60 0v120" stroke="#1a7a4c" stroke-width="1" opacity="0.35"/>
+  <circle cx="60" cy="60" r="18" fill="none" stroke="#1a7a4c" stroke-width="1" opacity="0.35"/>
+  <rect x="0" y="0" width="120" height="120" fill="url(#stripe)" opacity="0.04"/>
+  <defs>
+    <pattern id="stripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#d4af37" stroke-width="4"/>
+    </pattern>
+  </defs>
+</svg>
