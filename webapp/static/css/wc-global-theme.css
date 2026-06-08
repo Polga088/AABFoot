@@ -1,32 +1,48 @@
-/* ═══════════════════════════════════════════════════════════
-   Foot AAB — Thème global Coupe du Monde 2026
-   Couleurs · bannières · drapeaux · typographie sport
-   ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   World Cup Matchday Theme — Foot AAB (Flask)
+   Sombre stade · rouge Maroc · vert terrain · or trophée
+   Glassmorphism · sans modification logique métier
+   ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --wc-green: #0a4d2e;
-  --wc-green-mid: #1a7a4c;
-  --wc-green-dark: #041a10;
+  --wc-bg: #06111f;
+  --wc-bg-soft: #0b1f36;
+  --wc-bg-deep: #020617;
+  --wc-card: rgba(255, 255, 255, 0.08);
+  --wc-card-strong: rgba(255, 255, 255, 0.12);
+  --wc-card-border: rgba(255, 255, 255, 0.14);
+  --wc-red: #c8102e;
+  --wc-green: #00843d;
   --wc-gold: #d4af37;
-  --wc-gold-bright: #f5d547;
-  --wc-red: #c41e3a;
-  --wc-blue: #1e3a8a;
-  --wc-card: rgba(255, 255, 255, 0.97);
-  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
-  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
-  --font-condensed: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --wc-white: #f8fafc;
+  --wc-muted: #94a3b8;
+  --wc-success: #22c55e;
+  --wc-warning: #fbbf24;
+  --wc-danger: #ef4444;
+  --wc-radius-sm: 12px;
+  --wc-radius-md: 18px;
+  --wc-radius-lg: 28px;
+  --wc-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --wc-glow-red: 0 0 42px rgba(200, 16, 46, 0.28);
+  --wc-glow-green: 0 0 42px rgba(0, 132, 61, 0.25);
+  --wc-glow-gold: 0 0 42px rgba(212, 175, 55, 0.22);
+  --wc-gradient-main: linear-gradient(135deg, #c8102e 0%, #00843d 55%, #d4af37 100%);
+  --wc-gradient-dark: radial-gradient(circle at top, #143b63 0%, #06111f 55%, #020617 100%);
+  --font-display: "Oswald", "Bebas Neue", sans-serif;
+  --font-body: "Montserrat", system-ui, sans-serif;
 }
 
-/* ——— Fond & typographie globale ——— */
+/* ——— Shell & typographie ——— */
+body.theme-wc-app.wc-app-shell,
 body.theme-wc-app {
   font-family: var(--font-body);
-  color: #e8f0eb;
+  color: var(--wc-white);
   background:
-    url("../img/wc/pitch-pattern.svg") repeat,
-    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(30, 58, 138, 0.4) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
-    linear-gradient(165deg, #0b1f14 0%, #0a4d2e 35%, #062a18 70%, #041a10 100%);
-  background-size: 120px 120px, auto, auto, auto;
+    linear-gradient(rgba(6, 17, 31, 0.92), rgba(2, 6, 23, 0.97)),
+    url("../brand/worldcup/stadium-pattern.svg");
+  background-size: cover;
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 body.theme-wc-app h1,
@@ -36,89 +52,118 @@ body.theme-wc-app .card-title,
 body.theme-wc-app .metric-label,
 body.theme-wc-app .auth-title,
 body.theme-wc-app .stats-hero-title,
-body.theme-wc-app .nav-brand-title {
+body.theme-wc-app .nav-brand-title,
+body.theme-wc-app .wc-title {
   font-family: var(--font-display);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-/* ——— Header & navigation ——— */
+.wc-gradient-text {
+  background: var(--wc-gradient-main);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wc-gold-text {
+  color: var(--wc-gold);
+}
+
+/* ——— Header premium ——— */
 body.theme-wc-app .site-header {
-  background: linear-gradient(180deg, #041a10 0%, #0a4d2e 100%);
-  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.98) 0%, rgba(11, 31, 54, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid var(--wc-card-border);
 }
 
 body.theme-wc-app .brand-accent-bar {
-  height: 5px;
-  background: linear-gradient(
-    90deg,
-    var(--wc-green) 0%,
-    var(--wc-gold) 20%,
-    #fff 40%,
-    var(--wc-gold) 60%,
-    var(--wc-red) 80%,
-    var(--wc-blue) 100%
-  );
+  height: 4px;
+  background: var(--wc-gradient-main);
+}
+
+body.theme-wc-app .nav-logo,
+body.theme-wc-app .footer-logo {
+  border-radius: 14px;
+  box-shadow: var(--wc-glow-gold);
 }
 
 body.theme-wc-app .nav-brand-title {
-  color: #fff;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 body.theme-wc-app .nav-brand-sub {
-  color: var(--wc-gold-bright);
-  font-family: var(--font-condensed);
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--wc-muted);
   text-transform: uppercase;
+  margin-top: 2px;
 }
 
 body.theme-wc-app .nav-links a {
-  color: rgba(255, 255, 255, 0.88);
-  font-family: var(--font-condensed);
+  color: var(--wc-muted);
   font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border-bottom-color: transparent;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--wc-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 body.theme-wc-app .nav-links a:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--wc-white);
+  background: var(--wc-card);
+  border-bottom-color: transparent;
 }
 
 body.theme-wc-app .nav-links a.active:not(.wc-nav-link) {
-  color: var(--wc-gold-bright);
-  border-bottom-color: var(--wc-gold);
-  background: rgba(212, 175, 55, 0.15);
+  color: var(--wc-white);
+  background: rgba(200, 16, 46, 0.18);
+  border-bottom-color: var(--wc-red);
+  box-shadow: var(--wc-glow-red);
 }
 
 body.theme-wc-app .nav-links a.wc-nav-link {
-  background: linear-gradient(135deg, var(--wc-gold), var(--wc-gold-bright));
-  color: var(--wc-green-dark) !important;
-  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.45);
+  background: var(--wc-gradient-main);
+  color: #fff !important;
+  border-radius: 999px;
+  padding: 8px 14px !important;
+  font-weight: 700;
+  box-shadow: var(--wc-glow-red);
+  border-bottom: none;
+}
+
+body.theme-wc-app .nav-ico {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.9;
 }
 
 body.theme-wc-app .nav-user {
-  background: rgba(212, 175, 55, 0.2);
-  color: var(--wc-gold-bright);
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--wc-gold);
   border: 1px solid rgba(212, 175, 55, 0.35);
 }
 
 body.theme-wc-app .nav-logout {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--wc-muted);
 }
 
 body.theme-wc-app .nav-logout:hover {
   color: var(--wc-red);
 }
 
-/* ——— Bannière CDM ——— */
+/* ——— Bannière matchday ——— */
 .wc-app-banner {
-  background: linear-gradient(90deg, var(--wc-blue) 0%, var(--wc-green) 40%, var(--wc-green) 60%, var(--wc-red) 100%);
-  padding: 6px 1.5rem;
-  overflow: hidden;
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.35) 0%, rgba(11, 31, 54, 0.9) 50%, rgba(0, 132, 61, 0.3) 100%);
+  border-bottom: 1px solid var(--wc-card-border);
+  padding: 8px 1.5rem;
 }
 
 .wc-app-banner-inner {
@@ -134,97 +179,139 @@ body.theme-wc-app .nav-logout:hover {
 .wc-banner-title {
   font-family: var(--font-display);
   font-size: 1rem;
-  letter-spacing: 0.15em;
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.12em;
+  color: var(--wc-white);
 }
 
 .wc-banner-sub {
-  font-family: var(--font-condensed);
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.85);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.wc-banner-flags {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  color: var(--wc-muted);
+  letter-spacing: 0.06em;
 }
 
 .wc-banner-flags img {
   width: 28px;
   height: 19px;
   object-fit: cover;
-  border-radius: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  border: 1px solid var(--wc-card-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.wc-banner-trophy {
-  font-size: 1.1rem;
-  margin-right: 4px;
-}
-
-/* ——— Cartes & métriques ——— */
+/* ——— Cards glassmorphism (map .card → .wc-card) ——— */
 body.theme-wc-app .card,
 body.theme-wc-app .metric,
-body.theme-wc-app .auth-card {
-  background: var(--wc-card);
-  border-color: rgba(212, 175, 55, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  color: var(--text);
+body.theme-wc-app .auth-card,
+body.theme-wc-app .wc-card {
+  border: 1px solid var(--wc-card-border);
+  background: linear-gradient(180deg, var(--wc-card-strong), var(--wc-card));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--wc-radius-lg);
+  box-shadow: var(--wc-shadow);
+  color: var(--wc-white);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+body.theme-wc-app .card:hover,
+body.theme-wc-app .metric:hover,
+body.theme-wc-app .match-card:hover {
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: var(--wc-shadow), var(--wc-glow-gold);
 }
 
 body.theme-wc-app .card-title {
-  color: var(--wc-green);
-  font-size: 1.05rem;
+  color: var(--wc-white);
+  font-size: 1.1rem;
 }
 
 body.theme-wc-app .metric {
-  border-top: 3px solid var(--wc-gold);
-  background: linear-gradient(180deg, #fff 0%, #fffbf0 100%);
+  border-top: 3px solid transparent;
+  border-image: var(--wc-gradient-main) 1;
+  position: relative;
+  overflow: hidden;
 }
 
 body.theme-wc-app .metric-label {
-  color: var(--wc-green);
+  color: var(--wc-muted);
   font-size: 11px;
 }
 
 body.theme-wc-app .metric-val {
-  color: var(--wc-green-dark);
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  letter-spacing: 0.02em;
+  font-size: 2rem;
+  color: var(--wc-white);
+  text-shadow: 0 0 24px rgba(200, 16, 46, 0.2);
 }
 
 body.theme-wc-app .metric-sub {
-  color: var(--text-secondary);
+  color: var(--wc-muted);
+}
+
+/* ——— Boutons ——— */
+body.theme-wc-app .btn-primary,
+body.theme-wc-app .btn-green,
+body.theme-wc-app .wc-button-primary {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  color: #fff;
+  font-weight: 800;
+  font-family: var(--font-body);
+  background: var(--wc-gradient-main);
+  box-shadow: var(--wc-glow-red);
+  cursor: pointer;
+}
+
+body.theme-wc-app .btn-primary:hover,
+body.theme-wc-app .btn-green:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+body.theme-wc-app .btn:not(.btn-primary):not(.btn-green):not(.btn-danger) {
+  border: 1px solid var(--wc-card-border);
+  border-radius: 999px;
+  color: var(--wc-white);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+body.theme-wc-app .card .btn:not(.btn-primary):not(.btn-green):not(.btn-danger) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.theme-wc-app .btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--wc-danger);
+  color: #fecaca;
 }
 
 /* ——— Formulaires ——— */
 body.theme-wc-app .form-label {
-  color: rgba(255, 255, 255, 0.9);
-  font-family: var(--font-condensed);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--wc-muted);
   font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 body.theme-wc-app .card .form-label,
 body.theme-wc-app .auth-card .form-label {
-  color: var(--wc-green);
+  color: var(--wc-muted);
 }
 
 body.theme-wc-app .form-input,
 body.theme-wc-app select.form-input,
 body.theme-wc-app textarea.form-input {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1.5px solid rgba(212, 175, 55, 0.35);
-  color: var(--wc-green-dark);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--wc-card-border);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-white);
   font-family: var(--font-body);
+}
+
+body.theme-wc-app .form-input::placeholder {
+  color: rgba(148, 163, 184, 0.7);
 }
 
 body.theme-wc-app .form-input:focus,
@@ -235,258 +322,268 @@ body.theme-wc-app select.form-input:focus {
 }
 
 body.theme-wc-app .form-feedback {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-body.theme-wc-app .card .form-feedback,
-body.theme-wc-app .auth-card .form-feedback {
-  color: var(--text);
+  color: var(--wc-white);
 }
 
 body.theme-wc-app .form-feedback.is-error {
-  color: #ffb3b3;
-  background: rgba(196, 30, 58, 0.2);
-  border-radius: 6px;
+  color: #fecaca;
+  background: rgba(200, 16, 46, 0.2);
+  border: 1px solid rgba(200, 16, 46, 0.4);
+  border-radius: var(--wc-radius-sm);
   padding: 8px 12px;
-}
-
-/* ——— Boutons ——— */
-body.theme-wc-app .btn {
-  font-family: var(--font-condensed);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-body.theme-wc-app .btn-green,
-body.theme-wc-app .btn-primary {
-  background: linear-gradient(180deg, var(--wc-gold) 0%, #b8941f 100%);
-  color: var(--wc-green-dark);
-  border-color: #b8941f;
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
-}
-
-body.theme-wc-app .btn-green:hover,
-body.theme-wc-app .btn-primary:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.45);
-}
-
-body.theme-wc-app .btn:not(.btn-green):not(.btn-primary):not(.btn-danger) {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-body.theme-wc-app .card .btn:not(.btn-green):not(.btn-primary):not(.btn-danger) {
-  background: #fff;
-  color: var(--wc-green);
-  border-color: rgba(10, 77, 46, 0.25);
 }
 
 /* ——— Badges ——— */
 body.theme-wc-app .badge-green {
-  background: rgba(10, 77, 46, 0.15);
-  color: var(--wc-green);
-  border-color: rgba(10, 77, 46, 0.25);
+  background: rgba(0, 132, 61, 0.2);
+  color: #86efac;
+  border: 1px solid rgba(0, 132, 61, 0.4);
 }
 
-body.theme-wc-app .badge-amber {
-  background: rgba(212, 175, 55, 0.2);
-  color: #7a5c00;
+body.theme-wc-app .badge-amber,
+body.theme-wc-app .badge-red {
+  background: rgba(200, 16, 46, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(200, 16, 46, 0.35);
+}
+
+body.theme-wc-app .wc-badge-live,
+.wc-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #fff;
+  background: rgba(200, 16, 46, 0.22);
+  border: 1px solid rgba(200, 16, 46, 0.45);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wc-badge-live::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--wc-red);
+  box-shadow: 0 0 18px var(--wc-red);
+  animation: wc-live-pulse 1.2s ease infinite;
+}
+
+@keyframes wc-live-pulse {
+  50% { opacity: 0.5; }
 }
 
 /* ——— Calendrier ——— */
 body.theme-wc-app .calendar-head div {
-  color: var(--wc-gold-bright);
-  font-family: var(--font-condensed);
-  font-weight: 700;
-  text-transform: uppercase;
+  color: var(--wc-gold);
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 body.theme-wc-app .calendar-cell {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(212, 175, 55, 0.2);
+  background: var(--wc-card);
+  border: 1px solid var(--wc-card-border);
+  backdrop-filter: blur(12px);
+  border-radius: var(--wc-radius-sm);
 }
 
 body.theme-wc-app .calendar-cell.has-events {
-  background: linear-gradient(180deg, #e8f5ee 0%, #fff 100%);
+  background: rgba(0, 132, 61, 0.12);
+  border-color: rgba(0, 132, 61, 0.3);
 }
 
 body.theme-wc-app .calendar-cell.today {
-  outline-color: var(--wc-gold);
-  box-shadow: 0 0 0 2px var(--wc-gold);
+  outline: 2px solid var(--wc-red);
+  box-shadow: var(--wc-glow-red);
+}
+
+body.theme-wc-app .cell-day-num {
+  color: var(--wc-white);
 }
 
 body.theme-wc-app .cell-event {
-  background: rgba(255, 255, 255, 0.9);
-  border-left-color: var(--wc-green);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--wc-white);
+  border-left: 3px solid var(--wc-red);
 }
 
 body.theme-wc-app .cell-event-training {
-  border-left-color: var(--wc-blue);
+  border-left-color: var(--wc-green);
+}
+
+body.theme-wc-app .wc-field-line {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent),
+    rgba(0, 132, 61, 0.12);
+  border: 1px solid rgba(0, 132, 61, 0.25);
+  border-radius: var(--wc-radius-sm);
 }
 
 /* ——— Tableaux ——— */
 body.theme-wc-app .card table thead th,
 body.theme-wc-app .wallet-table-wrap thead th,
 body.theme-wc-app .stats-table th {
-  background: linear-gradient(180deg, var(--wc-green) 0%, var(--wc-green-mid) 100%);
-  color: #fff;
-  border-bottom-color: var(--wc-gold);
-  font-family: var(--font-condensed);
+  background: rgba(200, 16, 46, 0.25);
+  color: var(--wc-white);
+  border-bottom: 2px solid var(--wc-gold);
+  font-family: var(--font-display);
+}
+
+body.theme-wc-app .card table tbody td,
+body.theme-wc-app .stats-table td {
+  color: var(--wc-white);
+  border-bottom-color: var(--wc-card-border);
 }
 
 body.theme-wc-app .card table tbody tr:hover,
 body.theme-wc-app .stats-table tbody tr:hover {
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(255, 255, 255, 0.05);
 }
 
+/* ——— Stats & historique ——— */
 body.theme-wc-app .stats-hero {
-  background: linear-gradient(135deg, var(--wc-green) 0%, var(--wc-blue) 100%);
-  color: #fff;
-  border: 2px solid var(--wc-gold);
+  background: linear-gradient(135deg, rgba(200, 16, 46, 0.4) 0%, rgba(11, 31, 54, 0.9) 50%, rgba(0, 132, 61, 0.35) 100%);
+  border: 1px solid var(--wc-card-border);
+  border-radius: var(--wc-radius-lg);
+  box-shadow: var(--wc-shadow);
 }
 
 body.theme-wc-app .stats-hero-title {
-  color: #fff;
+  color: var(--wc-white);
 }
 
 body.theme-wc-app .stats-hero-sub {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-body.theme-wc-app .stats-kpi-grid .metric {
-  border-top-color: var(--wc-gold);
+  color: var(--wc-muted);
 }
 
 body.theme-wc-app .stats-player-link {
-  color: var(--wc-green);
-  font-weight: 600;
+  color: var(--wc-gold);
 }
 
-body.theme-wc-app .stats-player-link:hover {
-  color: var(--gold-dark);
-}
-
-/* ——— Filtres & listes matchs ——— */
 body.theme-wc-app .pill {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
-  font-family: var(--font-condensed);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-body.theme-wc-app .pill:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: var(--wc-gold);
+  background: var(--wc-card);
+  border: 1px solid var(--wc-card-border);
+  color: var(--wc-white);
+  border-radius: 999px;
 }
 
 body.theme-wc-app .active-pill {
-  background: linear-gradient(180deg, var(--wc-gold) 0%, #b8941f 100%);
-  color: var(--wc-green-dark);
-  border-color: var(--wc-gold);
+  background: var(--wc-gradient-main);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--wc-glow-red);
 }
 
-body.theme-wc-app .match-card {
-  background: var(--wc-card);
-  border-color: rgba(212, 175, 55, 0.2);
-  color: var(--text);
+body.theme-wc-app .match-card,
+body.theme-wc-app .wc-score-card {
+  background: linear-gradient(180deg, var(--wc-card-strong), var(--wc-card));
+  border: 1px solid var(--wc-card-border);
+  border-radius: var(--wc-radius-md);
+  color: var(--wc-white);
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-wc-app .wc-score-card::after,
+body.theme-wc-app .match-card.active-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -50% -20%;
+  height: 120px;
+  background: var(--wc-gradient-main);
+  filter: blur(60px);
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 body.theme-wc-app .active-card {
   border-color: var(--wc-gold);
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+  box-shadow: var(--wc-glow-gold);
 }
 
-body.theme-wc-app .event-item {
-  background: var(--wc-card);
-  border-color: rgba(212, 175, 55, 0.15);
+body.theme-wc-app .match-title {
+  color: var(--wc-white);
 }
 
-/* ——— Progress & divers ——— */
+body.theme-wc-app .match-date-block {
+  color: var(--wc-muted);
+}
+
+/* ——— Auth ——— */
 body.theme-wc-app .auth-card {
-  border-top: 4px solid var(--wc-gold);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  border-top: 4px solid transparent;
+  border-image: var(--wc-gradient-main) 1;
 }
 
 body.theme-wc-app .auth-title {
-  color: var(--wc-green);
-  font-size: 1.75rem;
+  font-size: 1.85rem;
+  color: var(--wc-white);
 }
 
 body.theme-wc-app .auth-sub,
 body.theme-wc-app .auth-hint,
 body.theme-wc-app .auth-footer-note {
-  color: var(--text-secondary);
+  color: var(--wc-muted);
 }
 
 /* ——— Footer ——— */
 body.theme-wc-app .site-footer {
-  background: var(--wc-green-dark);
-  color: rgba(255, 255, 255, 0.55);
-  border-top: 2px solid var(--wc-gold);
-  flex-direction: column;
-  gap: 12px;
-  padding: 1.5rem 1rem 2rem;
-}
-
-body.theme-wc-app .wc-footer-flags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-body.theme-wc-app .wc-footer-flags img {
-  width: 32px;
-  height: 22px;
-  object-fit: cover;
-  border-radius: 2px;
-  opacity: 0.85;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: opacity 0.15s, transform 0.15s;
-}
-
-body.theme-wc-app .wc-footer-flags img:hover {
-  opacity: 1;
-  transform: scale(1.1);
+  background: rgba(2, 6, 23, 0.95);
+  border-top: 1px solid var(--wc-card-border);
+  color: var(--wc-muted);
 }
 
 body.theme-wc-app .wc-footer-tagline {
-  font-family: var(--font-condensed);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
   color: var(--wc-gold);
 }
 
-/* ——— Progress & divers ——— */
-body.theme-wc-app .progress-fill {
-  background: linear-gradient(90deg, var(--wc-green) 0%, var(--wc-gold) 100%);
+body.theme-wc-app .wc-footer-flags img {
+  border-radius: 3px;
+  border: 1px solid var(--wc-card-border);
 }
 
-body.theme-wc-app .lineup-pool-player.selected {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: var(--wc-gold);
+/* ——— Stats utilitaires ——— */
+body.theme-wc-app .wc-stat {
+  border-radius: var(--wc-radius-md);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  padding: 16px;
 }
 
-body.theme-wc-app .wallet-balance-val {
-  color: var(--wc-green);
+body.theme-wc-app .wc-stat-label {
+  color: var(--wc-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body.theme-wc-app .wc-stat-value {
   font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--wc-white);
+}
+
+body.theme-wc-app .progress-fill {
+  background: var(--wc-gradient-main);
+}
+
+body.theme-wc-app .container {
+  max-width: 1000px;
 }
 
 @media (max-width: 768px) {
-  .wc-app-banner-inner {
-    justify-content: center;
-    text-align: center;
+  body.theme-wc-app .card,
+  body.theme-wc-app .metric {
+    border-radius: 20px;
   }
 
-  .wc-banner-title {
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
+  body.theme-wc-app .metric-val {
+    font-size: 1.5rem;
   }
 
   .wc-banner-sub {

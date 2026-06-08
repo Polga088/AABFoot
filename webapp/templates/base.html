@@ -3,46 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Foot AAB · CDM 2026</title>
+  <title>MatchCup · Foot AAB</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/wc-global-theme.css') }}">
   {% block extra_css %}{% endblock %}
-  <link rel="icon" href="{{ url_for('static', filename='img/aab-logo.png') }}" type="image/png">
+  <link rel="icon" href="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}" type="image/svg+xml">
   <script>window.FOOTBOT_IS_ADMIN = {{ 'true' if user_is_admin else 'false' }};</script>
   <script src="{{ url_for('static', filename='js/admin-api.js') }}"></script>
 </head>
-<body class="{% block body_class %}theme-wc-app{% endblock %}">
+<body class="{% block body_class %}theme-wc-app wc-app-shell{% endblock %}">
   <header class="site-header">
     <nav class="navbar">
       <a href="/calendrier" class="nav-brand">
         <img
-          src="{{ url_for('static', filename='img/aab-logo.png') }}"
-          alt="Foot AAB"
+          src="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}"
+          alt="MatchCup"
           class="nav-logo"
+          width="44"
+          height="44"
         >
         <span class="nav-brand-text">
-          <span class="nav-brand-title">Foot AAB</span>
-          <span class="nav-brand-sub">Coupe du Monde 2026</span>
+          <span class="nav-brand-title wc-title wc-gradient-text">MatchCup</span>
+          <span class="nav-brand-sub">Football Organizer · CDM 2026</span>
         </span>
       </a>
       <div class="nav-links">
-        <a href="/calendrier" class="{{ 'active' if active_page == 'cal' }}">Calendrier</a>
-        <a href="/matchs" class="{{ 'active' if active_page == 'hist' }}">Matchs</a>
-        <a href="/statistiques" class="{{ 'active' if active_page == 'stats' }}">Stats</a>
-        <a href="/coupe-du-monde" class="{{ 'active' if active_page == 'wc' }} wc-nav-link">CDM 2026</a>
+        <a href="/calendrier" class="{{ 'active' if active_page == 'cal' }}"><span class="nav-ico" aria-hidden="true">📅</span> Calendrier</a>
+        <a href="/matchs" class="{{ 'active' if active_page == 'hist' }}"><span class="nav-ico" aria-hidden="true">⚽</span> Matchs</a>
+        <a href="/statistiques" class="{{ 'active' if active_page == 'stats' }}"><span class="nav-ico" aria-hidden="true">📊</span> Stats</a>
+        <a href="/coupe-du-monde" class="{{ 'active' if active_page == 'wc' }} wc-nav-link"><span class="nav-ico" aria-hidden="true">🏆</span> CDM 2026</a>
         {% if user_is_admin %}
-        <a href="/joueurs" class="{{ 'active' if active_page == 'players' }}">Joueurs</a>
-        <a href="/finance" class="{{ 'active' if active_page == 'finance' }}">Finance</a>
+        <a href="/joueurs" class="{{ 'active' if active_page == 'players' }}"><span class="nav-ico" aria-hidden="true">👥</span> Joueurs</a>
+        <a href="/finance" class="{{ 'active' if active_page == 'finance' }}"><span class="nav-ico" aria-hidden="true">🛡️</span> Finance</a>
         {% endif %}
         {% if user_logged_in %}
-        <a href="/wallet" class="nav-wallet {{ 'active' if active_page == 'wallet' }}">Mon wallet</a>
+        <a href="/wallet" class="nav-wallet {{ 'active' if active_page == 'wallet' }}"><span class="nav-ico" aria-hidden="true">💳</span> Wallet</a>
         <span class="nav-user">{{ current_player_name }}</span>
         <a href="{{ url_for('auth.logout') }}" class="nav-logout">Déconnexion</a>
         {% else %}
-        <a href="{{ url_for('auth.login_page') }}" class="{{ 'active' if active_page == 'auth' }}">Connexion</a>
+        <a href="{{ url_for('auth.login_page') }}" class="{{ 'active' if active_page == 'auth' }}"><span class="nav-ico" aria-hidden="true">🔐</span> Connexion</a>
         {% endif %}
       </div>
     </nav>
@@ -51,14 +53,14 @@
       <div class="wc-app-banner-inner">
         <div>
           <span class="wc-banner-trophy" aria-hidden="true">🏆</span>
-          <span class="wc-banner-title">FIFA World Cup 2026</span>
-          <span class="wc-banner-sub"> · USA · México · Canada · 11 juin — 19 juillet</span>
+          <span class="wc-banner-title">World Cup Matchday</span>
+          <span class="wc-banner-sub"> · USA · México · Canada · Maroc · GMT+1</span>
         </div>
-        <div class="wc-banner-flags" aria-label="Pays hôtes">
+        <div class="wc-banner-flags" aria-label="Pays hôtes et Maroc">
           <img src="{{ url_for('static', filename='img/wc/flags/us.png') }}" alt="USA" width="28" height="19">
           <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="México" width="28" height="19">
           <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="Canada" width="28" height="19">
-          <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="Maroc" width="28" height="19" title="Maroc">
+          <img src="{{ url_for('static', filename='img/wc/flags/ma.png') }}" alt="Maroc" width="28" height="19">
         </div>
       </div>
     </div>
@@ -86,8 +88,8 @@
       <img src="{{ url_for('static', filename='img/wc/flags/mx.png') }}" alt="">
       <img src="{{ url_for('static', filename='img/wc/flags/ca.png') }}" alt="">
     </div>
-    <img src="{{ url_for('static', filename='img/aab-logo.png') }}" alt="" class="footer-logo">
-    <span class="wc-footer-tagline">Foot AAB — Coupe du Monde 2026</span>
+    <img src="{{ url_for('static', filename='brand/worldcup/favicon.svg') }}" alt="" class="footer-logo" width="28" height="28">
+    <span class="wc-footer-tagline">MatchCup · Foot AAB · World Cup Matchday Theme</span>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

@@ -1,36 +1,25 @@
-/* Coupe du Monde 2026 — thème FIFA */
+/* Coupe du Monde 2026 — page Matchday (complément thème global) */
 .wc-page {
-  --wc-green: #0a4d2e;
-  --wc-green-light: #1a7a4c;
-  --wc-gold: #d4af37;
+  --wc-green-light: #00a651;
   --wc-gold-bright: #f5d547;
-  --wc-red: #c41e3a;
-  --wc-blue: #1e3a8a;
-  --wc-bg: #0b1f14;
-  --wc-card: rgba(255, 255, 255, 0.97);
+  --wc-blue: #143b63;
   margin: -0.5rem -0.25rem 2rem;
-}
-
-.wc-nav-link {
-  background: linear-gradient(135deg, var(--wc-gold), #e8c547);
-  color: var(--wc-green) !important;
-  font-weight: 700 !important;
-  border-radius: 999px;
-  padding: 6px 12px !important;
 }
 
 .wc-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: var(--wc-radius-lg, 28px);
   padding: 2rem 2rem 2rem 2.5rem;
   margin-bottom: 1.25rem;
-  background: linear-gradient(135deg, var(--wc-green) 0%, #062a18 50%, var(--wc-blue) 100%);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(200, 16, 46, 0.55) 0%, rgba(11, 31, 54, 0.95) 45%, rgba(0, 132, 61, 0.45) 100%);
+  border: 1px solid var(--wc-card-border);
+  color: var(--wc-white);
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 180px;
+  box-shadow: var(--wc-shadow);
 }
 
 .wc-hero-bg {
@@ -126,22 +115,24 @@
 .wc-kpi {
   text-align: center;
   padding: 14px;
-  border-radius: 14px;
-  background: var(--wc-card);
-  border: 1px solid rgba(10, 77, 46, 0.12);
-  box-shadow: 0 4px 16px rgba(10, 77, 46, 0.08);
+  border-radius: var(--wc-radius-md, 18px);
+  background: linear-gradient(180deg, var(--wc-card-strong), var(--wc-card));
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--wc-card-border);
+  box-shadow: var(--wc-shadow);
 }
 
 .wc-kpi.accent {
-  background: linear-gradient(135deg, #fff9e6, #fff);
-  border-color: var(--wc-gold);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: var(--wc-shadow), var(--wc-glow-gold);
 }
 
 .wc-kpi-val {
   display: block;
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--wc-green);
+  font-family: var(--font-display);
+  color: var(--wc-white);
   line-height: 1.1;
 }
 
@@ -149,7 +140,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #666;
+  color: var(--wc-muted);
   margin-top: 4px;
 }
 
@@ -199,16 +190,17 @@
 }
 
 .wc-group-card {
-  background: var(--wc-card);
-  border-radius: 16px;
+  background: linear-gradient(180deg, var(--wc-card-strong), var(--wc-card));
+  backdrop-filter: blur(20px);
+  border-radius: var(--wc-radius-md, 18px);
   overflow: hidden;
-  border: 1px solid rgba(10, 77, 46, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--wc-card-border);
+  box-shadow: var(--wc-shadow);
 }
 
 .wc-group-head {
   padding: 10px 14px;
-  background: linear-gradient(90deg, var(--wc-green), var(--wc-green-light));
+  background: var(--wc-gradient-main);
   color: #fff;
 }
 
@@ -228,11 +220,12 @@
 .wc-standings-table td {
   padding: 8px 10px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--wc-card-border);
+  color: var(--wc-white);
 }
 
 .wc-standings-table th {
-  color: #888;
+  color: var(--wc-muted);
   font-weight: 600;
   font-size: 10px;
   text-transform: uppercase;
@@ -247,14 +240,15 @@
 .wc-team-list li {
   padding: 6px 0;
   font-size: 13px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--wc-card-border);
+  color: var(--wc-white);
 }
 
 .wc-standings-pending {
   margin: 0;
   padding: 8px 14px 12px;
   font-size: 11px;
-  color: #888;
+  color: var(--wc-muted);
   font-style: italic;
 }
 
@@ -288,51 +282,53 @@
 }
 
 .wc-match-card {
-  background: var(--wc-card);
-  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wc-card-strong), var(--wc-card));
+  backdrop-filter: blur(16px);
+  border-radius: var(--wc-radius-md, 18px);
   padding: 14px 16px;
-  border: 1px solid rgba(10, 77, 46, 0.1);
-  border-left: 4px solid var(--wc-green);
+  border: 1px solid var(--wc-card-border);
+  border-left: 4px solid var(--wc-red);
+  color: var(--wc-white);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .wc-match-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(10, 77, 46, 0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--wc-shadow), var(--wc-glow-gold);
 }
 
 .wc-match-card.knockout {
   border-left-color: var(--wc-gold);
-  background: linear-gradient(90deg, #fffdf5 0%, #fff 30%);
-}
-
-.wc-match-card.status-finished {
-  opacity: 0.92;
 }
 
 .wc-match-card.status-live {
   border-left-color: var(--wc-red);
+  box-shadow: var(--wc-glow-red);
   animation: wc-pulse 2s ease infinite;
 }
 
 @keyframes wc-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 30, 58, 0.2); }
-  50% { box-shadow: 0 0 0 6px rgba(196, 30, 58, 0); }
+  0%, 100% { box-shadow: var(--wc-glow-red); }
+  50% { box-shadow: 0 0 0 8px rgba(200, 16, 46, 0); }
 }
 
 .wc-match-meta {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #888;
+  color: var(--wc-muted);
   margin-bottom: 8px;
 }
 
 .wc-match-group {
   font-weight: 700;
-  color: var(--wc-green);
+  color: var(--wc-gold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.wc-match-team {
+  color: var(--wc-white);
 }
 
 .wc-match-teams {
@@ -377,7 +373,7 @@
 }
 
 .wc-vs {
-  color: #aaa;
+  color: var(--wc-muted);
   font-size: 13px;
 }
 
@@ -387,35 +383,30 @@
   gap: 12px;
   margin-top: 10px;
   font-size: 12px;
-  color: #666;
+  color: var(--wc-muted);
 }
 
 .wc-upcoming {
   margin-top: 1.5rem;
-  border: 2px solid var(--wc-gold);
-  border-radius: 16px;
-}
-
-.wc-upcoming-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--wc-radius-lg, 28px);
+  background: var(--wc-card);
 }
 
 .wc-upcoming-chip {
   display: flex;
   flex-direction: column;
   padding: 8px 14px;
-  background: linear-gradient(135deg, #f8faf9, #fff);
-  border: 1px solid rgba(10, 77, 46, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--wc-card-border);
   border-radius: 10px;
   font-size: 12px;
+  color: var(--wc-white);
 }
 
 .wc-upcoming-time {
   font-weight: 800;
-  color: var(--wc-green);
+  color: var(--wc-gold);
   font-size: 14px;
 }
 
@@ -436,10 +427,10 @@ body.theme-wc-page .wc-tab:hover {
 }
 
 body.theme-wc-page .wc-tab.active {
-  background: linear-gradient(135deg, var(--wc-gold), var(--wc-gold-bright));
-  color: var(--wc-green);
+  background: var(--wc-gradient-main);
+  color: #fff;
   border-color: transparent;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  box-shadow: var(--wc-glow-red);
 }
 
 body.theme-wc-page .wc-empty-state {

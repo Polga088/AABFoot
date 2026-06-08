@@ -1,0 +1,30 @@
+<svg width="420" height="120" viewBox="0 0 420 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="120" rx="28" fill="#06111F"/>
+  <rect x="1" y="1" width="418" height="118" rx="27" stroke="url(#border)" stroke-width="2"/>
+  <circle cx="66" cy="60" r="36" fill="url(#ballGradient)"/>
+  <path d="M66 29L75 52H99L80 66L88 90L66 75L44 90L52 66L33 52H57L66 29Z" fill="#D4AF37"/>
+  <circle cx="66" cy="60" r="26" stroke="#F8FAFC" stroke-opacity="0.75" stroke-width="3"/>
+  <path d="M40 60H92" stroke="#F8FAFC" stroke-opacity="0.45" stroke-width="2"/>
+  <path d="M66 34C58 44 54 53 54 60C54 67 58 76 66 86" stroke="#F8FAFC" stroke-opacity="0.45" stroke-width="2"/>
+  <path d="M66 34C74 44 78 53 78 60C78 67 74 76 66 86" stroke="#F8FAFC" stroke-opacity="0.45" stroke-width="2"/>
+  <text x="120" y="56" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#F8FAFC" letter-spacing="1">MATCH CUP</text>
+  <text x="122" y="84" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#94A3B8" letter-spacing="3">FOOTBALL ORGANIZER</text>
+  <path d="M330 36C350 48 360 48 380 36V58C380 78 364 91 355 94C346 91 330 78 330 58V36Z" fill="url(#shieldGradient)" stroke="#D4AF37" stroke-width="2"/>
+  <path d="M355 45L361 58H375L364 66L368 80L355 72L342 80L346 66L335 58H349L355 45Z" fill="#F8FAFC"/>
+  <defs>
+    <linearGradient id="border" x1="0" y1="0" x2="420" y2="120">
+      <stop stop-color="#C8102E"/>
+      <stop offset="0.55" stop-color="#00843D"/>
+      <stop offset="1" stop-color="#D4AF37"/>
+    </linearGradient>
+    <linearGradient id="ballGradient" x1="30" y1="24" x2="102" y2="96">
+      <stop stop-color="#C8102E"/>
+      <stop offset="0.55" stop-color="#00843D"/>
+      <stop offset="1" stop-color="#D4AF37"/>
+    </linearGradient>
+    <linearGradient id="shieldGradient" x1="330" y1="36" x2="380" y2="94">
+      <stop stop-color="#C8102E"/>
+      <stop offset="1" stop-color="#06111F"/>
+    </linearGradient>
+  </defs>
+</svg>
