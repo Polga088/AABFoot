@@ -1,6 +1,6 @@
-/* MATCHCUP 26 — Official-inspired tri-host theme (USA · Mexico · Canada) */
+/* MATCHCUP 26 — v2 couleurs · logo · cadres · navigation */
 
-@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700;800&display=swap");
 
 :root {
   --wc26-black: #050505;
@@ -9,166 +9,263 @@
   --wc26-red: #d71920;
   --wc26-green: #00a651;
   --wc26-gold: #c9a227;
-  --wc26-silver: #d9d9d9;
-  --wc26-bg: #f7f4ef;
-  --wc26-ink: #101010;
-  --wc26-card: rgba(255, 255, 255, 0.88);
+  --wc26-silver: #d1d5db;
+  --wc26-bg: #f3f0ea;
+  --wc26-ink: #111827;
   --wc26-card-solid: #ffffff;
   --wc26-muted: #6b7280;
-  --wc26-border: rgba(5, 5, 5, 0.12);
-  --wc26-gradient-hosts: linear-gradient(135deg, #d71920 0%, #00a651 48%, #0046ad 100%);
-  --wc26-gradient-title: linear-gradient(90deg, #d71920 0%, #00a651 45%, #0046ad 100%);
-  --wc26-shadow: 0 18px 50px rgba(5, 5, 5, 0.12);
+  --wc26-border: #e5e7eb;
+  --wc26-border-strong: #d1d5db;
+  --wc26-gradient-hosts: linear-gradient(90deg, #d71920 0%, #00a651 50%, #0046ad 100%);
+  --wc26-shadow-sm: 0 2px 8px rgba(5, 5, 5, 0.06);
+  --wc26-shadow-md: 0 8px 28px rgba(5, 5, 5, 0.08);
+  --wc26-shadow-lg: 0 16px 48px rgba(5, 5, 5, 0.1);
+  --wc26-radius: 20px;
+  --wc26-radius-sm: 12px;
 }
 
-html,
+/* Neutralise conflits style.css */
 body.matchcup26 {
-  background:
-    linear-gradient(rgba(247, 244, 239, 0.94), rgba(247, 244, 239, 0.96)),
+  margin: 0;
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--wc26-ink);
+  background-color: var(--wc26-bg);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(243, 240, 234, 0.95) 100%),
     url("../brand/worldcup26/wc26-pattern.svg");
   background-size: cover;
   background-attachment: fixed;
-  color: var(--wc26-ink);
-  font-family: "Montserrat", system-ui, sans-serif;
   min-height: 100vh;
-}
-
-body.matchcup26::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 15% 15%, rgba(215, 25, 32, 0.12), transparent 32%),
-    radial-gradient(circle at 85% 12%, rgba(0, 70, 173, 0.14), transparent 34%),
-    radial-gradient(circle at 50% 90%, rgba(0, 166, 81, 0.12), transparent 38%);
-  z-index: -1;
+  -webkit-font-smoothing: antialiased;
 }
 
 body.matchcup26 .container {
-  color: var(--wc26-ink);
-  max-width: 1000px;
+  max-width: 980px;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
-/* Header noir premium */
+/* ═══ HEADER & NAVIGATION ═══ */
 body.matchcup26 .site-header {
-  background: rgba(5, 5, 5, 0.96);
-  border-bottom: 6px solid transparent;
-  border-image: var(--wc26-gradient-hosts) 1;
-  box-shadow: 0 16px 40px rgba(5, 5, 5, 0.2);
   position: sticky;
   top: 0;
   z-index: 100;
+  background: var(--wc26-black);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-bottom: none;
 }
 
-body.matchcup26 .brand-accent-bar {
-  height: 0;
-  display: none;
+body.matchcup26 .nav-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 body.matchcup26 .navbar {
-  padding: 0.65rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-height: 68px;
+  padding: 0;
+}
+
+body.matchcup26 .nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+body.matchcup26 .nav-mark {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+body.matchcup26 .nav-brand-lockup {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
 }
 
 body.matchcup26 .nav-brand-title {
   font-family: "Archivo Black", Impact, sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 0.04em;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
   color: var(--wc26-white);
-}
-
-body.matchcup26 .nav-brand-sub {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--wc26-silver);
   text-transform: uppercase;
 }
 
-body.matchcup26 .nav-logo {
-  height: 48px;
-  width: auto;
-  max-width: 180px;
-  object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
+body.matchcup26 .nav-brand-accent {
+  color: var(--wc26-gold);
 }
 
-body.matchcup26 .nav-links a {
-  color: rgba(247, 244, 239, 0.82);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  font-size: 13px;
+body.matchcup26 .nav-brand-year {
+  font-family: "Archivo Black", Impact, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  color: var(--wc26-silver);
+  margin-top: 3px;
+}
+
+body.matchcup26 .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+body.matchcup26 .nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+body.matchcup26 .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Liens nav — écrase style.css */
+body.matchcup26 .nav-links a,
+body.matchcup26 .nav-actions a.nav-item,
+body.matchcup26 .nav-item {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
   border-radius: 999px;
   border-bottom: none;
-  padding: 8px 14px;
+  background: transparent;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-body.matchcup26 .nav-links a:hover {
+body.matchcup26 .nav-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.matchcup26 .nav-item.active {
+  color: #fff;
+  background: var(--wc26-blue);
+  box-shadow: 0 4px 16px rgba(0, 70, 173, 0.35);
+}
+
+body.matchcup26 .nav-item-cdm {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-body.matchcup26 .nav-links a.active:not(.wc-nav-link) {
-  color: #fff;
+body.matchcup26 .nav-item-cdm:hover,
+body.matchcup26 .nav-item-cdm.active {
   background: var(--wc26-gradient-hosts);
-  box-shadow: 0 10px 30px rgba(215, 25, 32, 0.25);
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(215, 25, 32, 0.3);
 }
 
-body.matchcup26 .nav-links a.wc-nav-link {
-  background: var(--wc26-gradient-hosts);
-  color: #fff !important;
-  font-weight: 900;
-  box-shadow: 0 10px 28px rgba(0, 70, 173, 0.28);
+body.matchcup26 .nav-item-wallet.active {
+  background: rgba(201, 162, 39, 0.25);
+  color: var(--wc26-gold);
 }
 
 body.matchcup26 .nav-user {
-  background: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 700;
   color: var(--wc26-gold);
-  border: 1px solid rgba(201, 162, 39, 0.35);
+  background: rgba(201, 162, 39, 0.12);
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 999px;
+  padding: 5px 10px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body.matchcup26 .nav-logout {
-  color: rgba(247, 244, 239, 0.65);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  padding: 6px 8px;
 }
 
-/* Barre matchday claire */
+body.matchcup26 .nav-logout:hover {
+  color: var(--wc26-red);
+}
+
+body.matchcup26 .wc26-host-strip {
+  height: 4px;
+  background: var(--wc26-gradient-hosts);
+}
+
+/* Barre matchday — sobre */
 body.matchcup26 .wc-matchday-bar {
-  background: var(--wc26-card-solid);
-  color: var(--wc26-black);
+  background: var(--wc26-white);
   border-bottom: 1px solid var(--wc26-border);
-  box-shadow: 0 12px 35px rgba(5, 5, 5, 0.08);
-  padding: 10px 1.5rem;
+  padding: 8px 1rem;
 }
 
-body.matchcup26 .wc-matchday-bar strong,
+body.matchcup26 .wc-app-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.matchcup26 .wc-banner-line {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 body.matchcup26 .wc-banner-title {
   font-family: "Archivo Black", Impact, sans-serif;
-  background: var(--wc26-gradient-title);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wc26-black);
+  margin: 0;
 }
 
 body.matchcup26 .wc-banner-sub {
-  color: var(--wc26-muted);
+  font-size: 11px;
   font-weight: 600;
-  font-size: 12px;
+  color: var(--wc26-muted);
+  letter-spacing: 0.06em;
+}
+
+body.matchcup26 .wc-banner-flags {
+  display: flex;
+  gap: 6px;
 }
 
 body.matchcup26 .wc-banner-flags img {
   border-radius: 3px;
   border: 1px solid var(--wc26-border);
-  box-shadow: 0 4px 12px rgba(5, 5, 5, 0.1);
+  box-shadow: var(--wc26-shadow-sm);
 }
 
-body.matchcup26 .wc26-host-strip {
-  height: 6px;
-  background: var(--wc26-gradient-hosts);
-}
-
-/* Titres */
+/* ═══ TYPO ═══ */
 body.matchcup26 h1,
 body.matchcup26 h2,
 body.matchcup26 h3,
@@ -178,10 +275,10 @@ body.matchcup26 .auth-title,
 body.matchcup26 .stats-hero-title {
   font-family: "Archivo Black", Impact, sans-serif;
   color: var(--wc26-black);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
-/* Cards blanches premium */
+/* ═══ CADRES / CARDS ═══ */
 body.matchcup26 .card,
 body.matchcup26 .metric,
 body.matchcup26 .auth-card,
@@ -189,54 +286,80 @@ body.matchcup26 .match-card,
 body.matchcup26 .wc-group-card,
 body.matchcup26 .wc-kpi,
 body.matchcup26 .wc-match-card {
+  position: relative;
   background: var(--wc26-card-solid);
   color: var(--wc26-ink);
   border: 1px solid var(--wc26-border);
-  border-radius: 26px;
-  box-shadow: var(--wc26-shadow);
-  backdrop-filter: blur(18px);
+  border-radius: var(--wc26-radius);
+  box-shadow: var(--wc26-shadow-md);
+  overflow: hidden;
+}
+
+body.matchcup26 .card::before,
+body.matchcup26 .metric::before,
+body.matchcup26 .auth-card::before,
+body.matchcup26 .match-card::before,
+body.matchcup26 .wc-group-card::before,
+body.matchcup26 .wc-kpi::before,
+body.matchcup26 .wc-match-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--wc26-gradient-hosts);
 }
 
 body.matchcup26 .card:hover,
 body.matchcup26 .metric:hover,
-body.matchcup26 .match-card:hover,
-body.matchcup26 .wc-match-card:hover {
-  border-color: rgba(0, 70, 173, 0.3);
-  box-shadow: 0 24px 65px rgba(5, 5, 5, 0.14);
+body.matchcup26 .match-card:hover {
+  border-color: var(--wc26-border-strong);
+  box-shadow: var(--wc26-shadow-lg);
 }
 
 body.matchcup26 .card-title {
+  font-size: 0.95rem;
   color: var(--wc26-black);
-  font-size: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--wc26-border);
+  margin-bottom: 1rem;
 }
 
 body.matchcup26 .metric {
-  border-top: 4px solid transparent;
-  border-image: var(--wc26-gradient-hosts) 1;
+  padding-top: 18px;
 }
 
+body.matchcup26 .metric:nth-child(1)::before { background: var(--wc26-red); }
+body.matchcup26 .metric:nth-child(2)::before { background: var(--wc26-green); }
+body.matchcup26 .metric:nth-child(3)::before { background: var(--wc26-blue); }
+body.matchcup26 .metric:nth-child(4)::before { background: var(--wc26-gold); }
+
 body.matchcup26 .metric-label {
+  font-size: 10px;
   color: var(--wc26-muted);
-  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 body.matchcup26 .metric-val {
   font-family: "Archivo Black", Impact, sans-serif;
-  font-size: 1.85rem;
+  font-size: 1.65rem;
   color: var(--wc26-black);
 }
 
 body.matchcup26 .metric-sub {
   color: var(--wc26-muted);
+  font-size: 11px;
 }
 
-/* Formulaires lisibles */
+/* ═══ FORMULAIRES ═══ */
 body.matchcup26 .form-label {
   color: var(--wc26-black);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 body.matchcup26 .form-input,
@@ -244,175 +367,161 @@ body.matchcup26 select.form-input,
 body.matchcup26 textarea.form-input {
   background: #fff;
   color: var(--wc26-black);
-  border: 1px solid rgba(5, 5, 5, 0.18);
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(5, 5, 5, 0.04);
+  border: 1.5px solid var(--wc26-border);
+  border-radius: var(--wc26-radius-sm);
 }
 
 body.matchcup26 .form-input:focus,
 body.matchcup26 select.form-input:focus {
   outline: none;
   border-color: var(--wc26-blue);
-  box-shadow: 0 0 0 4px rgba(0, 70, 173, 0.14);
-}
-
-body.matchcup26 .form-input::placeholder {
-  color: #9ca3af;
-}
-
-body.matchcup26 .form-feedback {
-  color: var(--wc26-ink);
+  box-shadow: 0 0 0 3px rgba(0, 70, 173, 0.12);
 }
 
 body.matchcup26 .form-feedback.is-error {
-  color: #b91c1c;
-  background: rgba(215, 25, 32, 0.08);
-  border: 1px solid rgba(215, 25, 32, 0.2);
-  border-radius: 12px;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--wc26-radius-sm);
   padding: 8px 12px;
 }
 
-/* Boutons */
-body.matchcup26 .btn,
-body.matchcup26 button {
+/* ═══ BOUTONS ═══ */
+body.matchcup26 .btn {
   border-radius: 999px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  font-size: 13px;
 }
 
 body.matchcup26 .btn-primary,
 body.matchcup26 .btn-green {
-  background: var(--wc26-gradient-hosts);
+  background: var(--wc26-blue);
   color: #fff;
-  border: 0;
-  box-shadow: 0 14px 36px rgba(0, 70, 173, 0.22);
+  border: none;
+  box-shadow: 0 6px 20px rgba(0, 70, 173, 0.25);
 }
 
 body.matchcup26 .btn-primary:hover,
 body.matchcup26 .btn-green:hover {
-  filter: brightness(1.05);
+  background: #003d94;
   transform: translateY(-1px);
 }
 
 body.matchcup26 .btn:not(.btn-primary):not(.btn-green):not(.btn-danger) {
   background: #fff;
   color: var(--wc26-black);
-  border: 1px solid var(--wc26-border);
+  border: 1.5px solid var(--wc26-border);
 }
 
 body.matchcup26 .btn-danger {
-  background: rgba(215, 25, 32, 0.1);
+  background: #fef2f2;
   color: #b91c1c;
-  border-color: rgba(215, 25, 32, 0.3);
+  border-color: #fecaca;
 }
 
-/* Badges */
+/* ═══ BADGES ═══ */
 body.matchcup26 .badge-green {
-  background: rgba(0, 166, 81, 0.12);
+  background: #ecfdf5;
   color: #047857;
-  border: 1px solid rgba(0, 166, 81, 0.26);
+  border: 1px solid #a7f3d0;
 }
 
-body.matchcup26 .badge-amber,
+body.matchcup26 .badge-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
 body.matchcup26 .badge-red {
-  background: rgba(215, 25, 32, 0.1);
+  background: #fef2f2;
   color: #b91c1c;
-  border: 1px solid rgba(215, 25, 32, 0.22);
+  border: 1px solid #fecaca;
 }
 
-body.matchcup26 .wc-badge-live,
-.wc-badge-live {
-  background: rgba(215, 25, 32, 0.12);
-  color: #b91c1c;
-  border: 1px solid rgba(215, 25, 32, 0.26);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-weight: 900;
-  font-size: 11px;
-}
-
-/* Calendrier clair */
+/* ═══ CALENDRIER ═══ */
 body.matchcup26 .calendar-grid {
-  background: rgba(255, 255, 255, 0.75);
+  background: #fff;
   border: 1px solid var(--wc26-border);
-  border-radius: 30px;
-  padding: 12px;
-  box-shadow: var(--wc26-shadow);
+  border-radius: var(--wc26-radius);
+  padding: 14px;
+  box-shadow: var(--wc26-shadow-md);
 }
 
 body.matchcup26 .calendar-head div {
-  color: var(--wc26-black);
-  font-weight: 800;
+  font-family: "Archivo Black", Impact, sans-serif;
+  font-size: 11px;
+  color: var(--wc26-muted);
+  text-transform: uppercase;
 }
 
 body.matchcup26 .calendar-cell {
-  background: #fff;
-  color: var(--wc26-black);
-  border: 1px solid rgba(5, 5, 5, 0.1);
-  border-radius: 18px;
+  background: #fafafa;
+  border: 1px solid var(--wc26-border);
+  border-radius: 14px;
 }
 
 body.matchcup26 .calendar-cell.has-events {
-  background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);
-  border-color: rgba(0, 166, 81, 0.25);
+  background: #fff;
+  border-color: rgba(0, 166, 81, 0.35);
 }
 
 body.matchcup26 .calendar-cell.today {
-  outline: 2px solid var(--wc26-blue);
-  box-shadow: 0 0 0 3px rgba(0, 70, 173, 0.15);
+  border: 2px solid var(--wc26-blue);
+  background: #eff6ff;
 }
 
 body.matchcup26 .cell-day-num {
   color: var(--wc26-black);
+  font-weight: 700;
 }
 
 body.matchcup26 .cell-event {
   background: #fff;
-  color: var(--wc26-ink);
   border-left: 3px solid var(--wc26-red);
+  color: var(--wc26-ink);
 }
 
 body.matchcup26 .cell-event-training {
   border-left-color: var(--wc26-green);
 }
 
-body.matchcup26 .cell-event-time {
-  color: var(--wc26-muted);
-}
-
-/* Tableaux */
+/* ═══ TABLEAUX ═══ */
 body.matchcup26 .card table thead th,
 body.matchcup26 .wallet-table-wrap thead th,
 body.matchcup26 .stats-table th {
-  background: var(--wc26-gradient-hosts);
+  background: var(--wc26-black);
   color: #fff;
-  border-bottom: 2px solid var(--wc26-gold);
-  font-family: "Archivo Black", Impact, sans-serif;
-  font-size: 11px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  border-bottom: 3px solid var(--wc26-red);
 }
 
 body.matchcup26 .card table tbody td,
 body.matchcup26 .stats-table td {
   color: var(--wc26-ink);
-  border-bottom-color: var(--wc26-border);
+  border-bottom: 1px solid var(--wc26-border);
 }
 
-body.matchcup26 .card table tbody tr:hover,
-body.matchcup26 .stats-table tbody tr:hover {
-  background: rgba(0, 70, 173, 0.04);
+body.matchcup26 .card table tbody tr:hover {
+  background: #f9fafb;
 }
 
-/* Stats hero */
+/* ═══ STATS & HISTORIQUE ═══ */
 body.matchcup26 .stats-hero {
-  background:
-    linear-gradient(135deg, rgba(5, 5, 5, 0.94) 0%, rgba(5, 5, 5, 0.78) 50%, rgba(5, 5, 5, 0.9) 100%),
-    radial-gradient(circle at 15% 20%, rgba(215, 25, 32, 0.5), transparent 28%),
-    radial-gradient(circle at 80% 25%, rgba(0, 70, 173, 0.45), transparent 30%),
-    radial-gradient(circle at 55% 90%, rgba(0, 166, 81, 0.45), transparent 36%);
+  background: var(--wc26-black);
   color: #fff;
-  border-radius: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 28px 90px rgba(5, 5, 5, 0.2);
+  border-radius: var(--wc26-radius);
+  border: none;
+  box-shadow: var(--wc26-shadow-lg);
+}
+
+body.matchcup26 .stats-hero::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: var(--wc26-gradient-hosts);
+  margin: -1rem -1.25rem 1rem;
+  border-radius: var(--wc26-radius) var(--wc26-radius) 0 0;
 }
 
 body.matchcup26 .stats-hero-title {
@@ -420,7 +529,74 @@ body.matchcup26 .stats-hero-title {
 }
 
 body.matchcup26 .stats-hero-sub {
-  color: rgba(247, 244, 239, 0.85);
+  color: var(--wc26-silver);
+}
+
+body.matchcup26 .pill {
+  background: #fff;
+  border: 1.5px solid var(--wc26-border);
+  color: var(--wc26-black);
+  font-weight: 700;
+}
+
+body.matchcup26 .active-pill {
+  background: var(--wc26-blue);
+  color: #fff;
+  border-color: var(--wc26-blue);
+}
+
+body.matchcup26 .active-card {
+  border-color: var(--wc26-blue);
+  box-shadow: 0 0 0 3px rgba(0, 70, 173, 0.12);
+}
+
+/* ═══ AUTH ═══ */
+body.matchcup26 .auth-card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+body.matchcup26 .auth-title {
+  font-size: 1.6rem;
+}
+
+body.matchcup26 .auth-sub,
+body.matchcup26 .auth-hint {
+  color: var(--wc26-muted);
+}
+
+/* ═══ FOOTER ═══ */
+body.matchcup26 .site-footer {
+  background: var(--wc26-black);
+  color: rgba(255, 255, 255, 0.7);
+  border-top: none;
+  margin-top: 2rem;
+  padding: 1.25rem 1rem 1.75rem;
+  flex-direction: column;
+  gap: 10px;
+}
+
+body.matchcup26 .wc-footer-tagline {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wc26-silver);
+  font-weight: 600;
+}
+
+body.matchcup26 .wc-footer-flags {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+body.matchcup26 .wc-footer-flags img {
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+body.matchcup26 .progress-fill {
+  background: linear-gradient(90deg, var(--wc26-red), var(--wc26-green), var(--wc26-blue));
 }
 
 body.matchcup26 .stats-player-link {
@@ -428,121 +604,40 @@ body.matchcup26 .stats-player-link {
   font-weight: 700;
 }
 
-/* Pills & historique */
-body.matchcup26 .pill {
-  background: #fff;
-  border: 1px solid var(--wc26-border);
-  color: var(--wc26-black);
-  border-radius: 999px;
-}
-
-body.matchcup26 .active-pill {
-  background: var(--wc26-gradient-hosts);
-  color: #fff;
-  border-color: transparent;
-}
-
-body.matchcup26 .active-card {
-  border-color: var(--wc26-blue);
-  box-shadow: 0 0 0 3px rgba(0, 70, 173, 0.15);
-}
-
-body.matchcup26 .match-title {
-  color: var(--wc26-black);
-}
-
-body.matchcup26 .match-date-block {
-  color: var(--wc26-muted);
-}
-
-/* Auth */
-body.matchcup26 .auth-card {
-  border-top: 4px solid transparent;
-  border-image: var(--wc26-gradient-hosts) 1;
-}
-
-body.matchcup26 .auth-title {
-  font-size: 1.75rem;
-}
-
-body.matchcup26 .auth-sub,
-body.matchcup26 .auth-hint,
-body.matchcup26 .auth-footer-note {
-  color: var(--wc26-muted);
-}
-
-/* Footer noir + bande tri-host */
-body.matchcup26 .site-footer {
-  background: var(--wc26-black);
-  color: rgba(247, 244, 239, 0.82);
-  border-top: 6px solid transparent;
-  border-image: var(--wc26-gradient-hosts) 1;
-  padding: 1.5rem 1rem 2rem;
-  gap: 14px;
-}
-
-body.matchcup26 .wc-footer-tagline {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--wc26-gold);
-  font-weight: 700;
-}
-
-body.matchcup26 .wc-footer-flags {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-body.matchcup26 .wc-footer-flags img {
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  opacity: 0.9;
-}
-
-body.matchcup26 .progress-fill {
-  background: var(--wc26-gradient-hosts);
-}
-
-/* Utilitaires */
-.wc26-logo {
-  height: 52px;
-  max-width: 200px;
-  object-fit: contain;
-}
-
-.wc26-gradient-text {
-  background: var(--wc26-gradient-title);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent !important;
-}
-
-.wc26-official-card {
-  background: #fff;
-  border-radius: 28px;
-  border: 1px solid var(--wc26-border);
-  box-shadow: var(--wc26-shadow);
-}
-
-@media (max-width: 768px) {
-  body.matchcup26 .nav-logo.wc26-logo-compact {
-    height: 40px;
-    max-width: 40px;
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 900px) {
+  body.matchcup26 .navbar {
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    gap: 0.65rem;
   }
 
-  body.matchcup26 .nav-brand-sub {
+  body.matchcup26 .nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  body.matchcup26 .nav-actions {
+    margin-left: auto;
+  }
+
+  body.matchcup26 .nav-brand-year {
+    letter-spacing: 0.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  body.matchcup26 .nav-brand-lockup {
     display: none;
+  }
+
+  body.matchcup26 .nav-item {
+    padding: 7px 11px;
+    font-size: 11px;
   }
 
   body.matchcup26 .wc-banner-sub {
     display: none;
-  }
-
-  body.matchcup26 .card,
-  body.matchcup26 .metric {
-    border-radius: 22px;
   }
 }
