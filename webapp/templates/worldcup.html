@@ -1,7 +1,9 @@
 {% extends "base.html" %}
-{% block content %}
+{% block body_class %}theme-wc{% endblock %}
+{% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/worldcup.css') }}">
-
+{% endblock %}
+{% block content %}
 <div class="wc-page">
   <header class="wc-hero">
     <div class="wc-hero-bg" aria-hidden="true"></div>

@@ -1,11 +1,11 @@
 :root {
-  /* Foot AAB — vert & or */
-  --green: #006b3f;
-  --green-dark: #004529;
-  --green-light: #e8f4ee;
-  --gold: #c9a227;
-  --gold-dark: #9a7b12;
-  --gold-light: #faf4e3;
+  /* Foot AAB — palette inspirée Coupe du Monde (vert FIFA & or) */
+  --green: #0a4d2e;
+  --green-dark: #062a18;
+  --green-light: #e0f2e9;
+  --gold: #d4af37;
+  --gold-dark: #b8941f;
+  --gold-light: #fff9e6;
   --silver: #8a9199;
   --red-accent: #c41e3a;
   --red: #c41e3a;
@@ -14,7 +14,7 @@
   --amber-light: var(--gold-light);
   --blue: #3d6b8c;
   --blue-light: #e8f0f6;
-  --border: rgba(0, 75, 45, 0.14);
+  --border: rgba(10, 77, 46, 0.16);
   --radius-md: 8px;
   --radius-lg: 12px;
   --bg: #ffffff;
