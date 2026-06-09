@@ -1,17 +1,38 @@
 const { Poll } = require("whatsapp-web.js");
 const { db } = require("../db/database");
 const { findRegisteredPlayerForVote } = require("./players");
-const { setAvailability } = require("./match");
-const { applyVoteCotisation } = require("./matchCotisation");
+const { applyMatchVote } = require("./matchCotisation");
 const { canAcceptYesVote, formatMaxPlayers } = require("./matchLimits");
 const { resolveGroupChatId } = require("./groups");
 const { sleep, formatError, waitForConnected, prepareChat } = require("./whatsapp");
 
 const POLL_OPTIONS = ["Oui", "Non", "Peut-etre"];
 
+/** Evite les doubles traitements WhatsApp (vote_update en rafale) */
+const recentVoteKeys = new Map();
+const VOTE_DEDUP_MS = 4000;
+
 function getMatchByPollMessageId(messageId) {
   if (!messageId) return null;
-  return db.prepare("SELECT * FROM matches WHERE poll_message_id = ?").get(messageId);
+
+  const direct = db.prepare("SELECT * FROM matches WHERE poll_message_id = ?").get(messageId);
+  if (direct) return direct;
+
+  const suffix = String(messageId).split("_").pop();
+  if (!suffix) return null;
+
+  return db
+    .prepare(
+      `
+      SELECT *
+      FROM matches
+      WHERE poll_message_id LIKE ?
+        AND status IN ('scheduled', 'training')
+      ORDER BY id DESC
+      LIMIT 1
+    `
+    )
+    .get(`%${suffix}`);
 }
 
 function buildPollTitle(match) {
@@ -40,6 +61,29 @@ function mapVoteToStatus(selectedOptions) {
     return "maybe";
   }
   return "pending";
+}
+
+function isDuplicateVote(playerId, matchId, status) {
+  const key = `${playerId}:${matchId}:${status}`;
+  const now = Date.now();
+  const last = recentVoteKeys.get(key);
+  recentVoteKeys.set(key, now);
+
+  if (recentVoteKeys.size > 500) {
+    for (const [k, ts] of recentVoteKeys) {
+      if (now - ts > VOTE_DEDUP_MS) recentVoteKeys.delete(k);
+    }
+  }
+
+  return last && now - last < VOTE_DEDUP_MS;
+}
+
+async function notifyVoter(client, voterId, lines) {
+  try {
+    await client.sendMessage(voterId, lines.join("\n"));
+  } catch (error) {
+    console.warn("MP votant impossible:", error.message);
+  }
 }
 
 async function sendPollToChat(chat, poll) {
@@ -121,56 +165,80 @@ async function handlePollVote(client, vote) {
   const messageId =
     vote.parentMsgKey?._serialized || vote.parentMessage?.id?._serialized || null;
   const match = getMatchByPollMessageId(messageId);
-  if (!match) return false;
+  if (!match) {
+    console.warn(`Vote ignore — sondage inconnu (messageId=${messageId || "?"})`);
+    return false;
+  }
 
   const status = mapVoteToStatus(vote.selectedOptions);
-  if (status === "pending") return true;
-
   const voterId = vote.voter;
+
   const player = await findRegisteredPlayerForVote(client, voterId);
   if (!player) {
-    console.warn(`Vote ignore — joueur non enregistre (voter=${voterId})`);
-    try {
-      await client.sendMessage(
-        voterId,
-        [
-          "⚠️ *Vote non pris en compte*",
-          "Votre numero n'est pas reconnu dans la liste de l'equipe.",
-          "Demandez a l'admin de vous ajouter sur */joueurs* avec votre numero *06…* ou *212…*,",
-          "puis revotez sur le sondage (le wallet sera debite uniquement si vous etes enregistre)."
-        ].join("\n")
-      );
-    } catch (error) {
-      console.warn("Impossible d'avertir le votant non enregistre:", error.message);
-    }
+    console.warn(`Vote ignore — joueur non enregistre (voter=${voterId}, match=#${match.id})`);
+    await notifyVoter(client, voterId, [
+      "⚠️ *Vote non pris en compte*",
+      "Votre numero n'est pas reconnu dans la liste de l'equipe.",
+      "Demandez a l'admin de vous ajouter sur */joueurs* avec votre numero *06…* ou *212…*,",
+      "puis revotez sur le sondage."
+    ]);
+    return true;
+  }
+
+  if (isDuplicateVote(player.id, match.id, status)) {
+    console.log(`Vote dedup ignore: #${player.id} match #${match.id} → ${status}`);
     return true;
   }
 
   if (status === "yes") {
     const capacity = canAcceptYesVote(match, player.id);
     if (!capacity.allowed) {
-      try {
-        await client.sendMessage(
-          voterId,
-          `⚠️ *Complet* — ${capacity.current}/${capacity.max} pour le ${match.format || "match"}.\n` +
-            `Votre vote « Oui » n'est pas accepté. Contactez l'admin pour la composition.`
-        );
-      } catch (error) {
-        console.warn(`Impossible d'avertir ${player.name} (complet):`, error.message);
-      }
+      await notifyVoter(
+        client,
+        voterId,
+        `⚠️ *Complet* — ${capacity.current}/${capacity.max} pour le ${match.format || "match"}.\n` +
+          `Votre vote « Oui » n'est pas accepté. Contactez l'admin pour la composition.`
+      );
       return true;
     }
   }
 
-  setAvailability(player.id, match.id, status);
-  const billing = applyVoteCotisation(player.id, match.id, status);
+  const billing = applyMatchVote(player.id, match.id, status);
+
+  if (billing.action === "unchanged") {
+    return true;
+  }
 
   if (billing.action === "debited") {
-    console.log(`Cotisation -${billing.amount} dh: ${player.name} (match #${match.id})`);
+    console.log(
+      `Cotisation -${billing.amount} dh: joueur #${player.id} (match #${match.id}) solde=${billing.balance}`
+    );
+    await notifyVoter(client, voterId, [
+      `✅ *Dispo enregistree* — Oui pour le ${match.date} ${match.time}`,
+      `💰 Cotisation: -${billing.amount} dh`,
+      `💼 Nouveau solde: *${Number(billing.balance).toFixed(2)} dh*`
+    ]);
   } else if (billing.action === "refunded") {
-    console.log(`Remboursement +${billing.amount} dh: ${player.name} (match #${match.id})`);
+    console.log(
+      `Remboursement +${billing.amount} dh: joueur #${player.id} (match #${match.id})`
+    );
+    await notifyVoter(client, voterId, [
+      `✅ *Vote mis a jour*`,
+      `↩️ Remboursement cotisation: +${billing.amount} dh`,
+      `💼 Solde: *${Number(billing.balance).toFixed(2)} dh*`
+    ]);
   } else if (billing.action === "debit_failed") {
-    console.warn(`Vote Oui sans debit (${player.name}): ${billing.error}`);
+    console.warn(
+      `Vote Oui sans debit joueur #${player.id}: ${billing.error} (match #${match.id})`
+    );
+    await notifyVoter(client, voterId, [
+      `⚠️ *Vote Oui enregistre* mais cotisation impossible`,
+      `Solde insuffisant (${billing.amount} dh requis).`,
+      `💼 Solde actuel: *${Number(billing.balance).toFixed(2)} dh*`,
+      "Rechargez votre wallet puis contactez l'admin si besoin."
+    ]);
+  } else if (billing.action === "availability_only" || billing.action === "none") {
+    console.log(`Dispo joueur #${player.id} match #${match.id} → ${status}`);
   }
 
   return true;

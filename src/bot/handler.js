@@ -2,7 +2,7 @@ const { parseIntent } = require("./parser");
 const { helpMessage } = require("./responses");
 const { askOllama } = require("../llm/ollama");
 const { db } = require("../db/database");
-const { applyVoteCotisation, getCotisationAmount } = require("../modules/matchCotisation");
+const { applyMatchVote, getCotisationAmount } = require("../modules/matchCotisation");
 const { canAcceptYesVote } = require("../modules/matchLimits");
 const { findPlayerByPhone } = require("../modules/players");
 const { normalizePhone, isWhatsAppInternalId } = require("../utils/phone");
@@ -169,8 +169,7 @@ async function handleMessage(client, msg) {
             break;
           }
         }
-        upsertAvailability(player.id, upcoming.id, status);
-        const billing = applyVoteCotisation(player.id, upcoming.id, status);
+        const billing = applyMatchVote(player.id, upcoming.id, status);
         let billingNote = "";
         if (billing.action === "debited") {
           billingNote = ` Cotisation: -${billing.amount} dh.`;

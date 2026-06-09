@@ -5,6 +5,10 @@ const {
   isWhatsAppInternalId
 } = require("../utils/phone");
 
+/** Cache voter WhatsApp ID → player id (stabilise les votes LID) */
+const voterPlayerCache = new Map();
+const VOTER_CACHE_MAX = 800;
+
 function findPlayerByPhone(rawPhone) {
   const variants = getPhoneLookupVariants(rawPhone);
   if (!variants.length) return null;
@@ -126,16 +130,47 @@ async function resolveVoterPhone(client, voterId) {
   return null;
 }
 
+function cacheVoterPlayer(voterId, player) {
+  if (!voterId || !player?.id) return;
+  if (voterPlayerCache.size >= VOTER_CACHE_MAX) {
+    const firstKey = voterPlayerCache.keys().next().value;
+    voterPlayerCache.delete(firstKey);
+  }
+  voterPlayerCache.set(String(voterId).trim(), player.id);
+}
+
+function playerFromCache(voterId) {
+  const cachedId = voterPlayerCache.get(String(voterId || "").trim());
+  if (!cachedId) return null;
+  const player = db.prepare("SELECT * FROM players WHERE id = ? AND active = 1").get(cachedId);
+  if (!player) {
+    voterPlayerCache.delete(String(voterId).trim());
+    return null;
+  }
+  return player;
+}
+
 async function findRegisteredPlayerForVote(client, voterId) {
+  const cached = playerFromCache(voterId);
+  if (cached) return cached;
+
   const phone = await resolveVoterPhone(client, voterId);
   if (!phone) {
     console.warn(`Vote: impossible de resoudre le telephone (voter=${voterId})`);
     return null;
   }
+
   const player = findPlayerByPhone(phone);
   if (!player) {
     console.warn(`Vote: joueur non en base pour ${phone} (voter=${voterId})`);
+    return null;
   }
+
+  cacheVoterPlayer(voterId, player);
+  if (phone !== voterId) {
+    cacheVoterPlayer(phone, player);
+  }
+
   return player;
 }
 
