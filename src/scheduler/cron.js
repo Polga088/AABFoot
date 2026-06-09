@@ -8,6 +8,27 @@ const { sendMatchPoll } = require("../modules/poll");
 const { resolveGroupChatId } = require("../modules/groups");
 const { checkLowBalances } = require("../modules/wallet");
 const { getDefaultCotisationAmount } = require("../modules/appSettings");
+const { normalizePhone, isWhatsAppInternalId } = require("../utils/phone");
+const { sleep } = require("../modules/whatsapp");
+
+async function sendPlayerMessage(client, rawPhone, text) {
+  if (!rawPhone || isWhatsAppInternalId(rawPhone)) {
+    return false;
+  }
+  const phone = normalizePhone(rawPhone);
+  if (!phone) {
+    return false;
+  }
+
+  try {
+    await client.sendMessage(phone, text);
+    await sleep(1200);
+    return true;
+  } catch (error) {
+    console.warn(`MP impossible (${phone}):`, error.message);
+    return false;
+  }
+}
 
 function getPendingPlayers(matchId) {
   return db
@@ -54,7 +75,8 @@ function startScheduler(client) {
       const failedPlayers = findPlayersByNames(result.failed);
 
       for (const player of failedPlayers) {
-        await client.sendMessage(
+        await sendPlayerMessage(
+          client,
           player.phone,
           `⚠️ ${player.name}, debit cotisation impossible (solde insuffisant). Merci de recharger ton wallet.`
         );
@@ -96,7 +118,8 @@ function startScheduler(client) {
 
       const pendingPlayers = getPendingPlayers(match.id);
       for (const player of pendingPlayers) {
-        await client.sendMessage(
+        await sendPlayerMessage(
+          client,
           player.phone,
           `⏰ Rappel dispo: vote sur le sondage du groupe pour le match #${match.id} (${match.date} ${match.time}).`
         );
@@ -132,7 +155,8 @@ function startScheduler(client) {
     try {
       const lowBalances = checkLowBalances();
       for (const player of lowBalances) {
-        await client.sendMessage(
+        await sendPlayerMessage(
+          client,
           player.phone,
           `⚠️ Ton wallet FootBot est à ${Number(player.balance).toFixed(2)} dh. Pense à recharger avant lundi (cotisation ${cotisationAmount} dh) 🙏`
         );

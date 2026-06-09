@@ -7,7 +7,7 @@ const { handleMessage } = require("./bot/handler");
 const { handlePollVote } = require("./modules/poll");
 const { startBackgroundJobs } = require("./jobs/queue");
 const { startScheduler } = require("./scheduler/cron");
-const { warnIfInvalidGroupId, logGroupDirectory } = require("./modules/groups");
+const { warnIfInvalidGroupId, logGroupDirectory, resolveGroupChatId } = require("./modules/groups");
 const { buildPuppeteerOptions } = require("./utils/chromium");
 
 const { options: puppeteerOptions, executablePath } = buildPuppeteerOptions();
@@ -35,6 +35,11 @@ function registerClientEvents() {
     console.log("✅ FootBot connecté !");
     warnIfInvalidGroupId();
     await logGroupDirectory(client);
+    try {
+      await resolveGroupChatId(client);
+    } catch (error) {
+      console.warn("Groupe equipe non resolu au demarrage:", error.message);
+    }
     await new Promise((resolve) => setTimeout(resolve, 8000));
     startBackgroundJobs(client);
   });

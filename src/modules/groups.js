@@ -1,3 +1,5 @@
+const { getSetting, setSetting } = require("./appSettings");
+
 const VALID_GROUP_ID = /^\d+@g\.us$/;
 
 function isValidGroupId(groupId) {
@@ -61,16 +63,32 @@ async function logGroupDirectory(client) {
   }
 }
 
+function rememberGroupId(groupId) {
+  if (!isValidGroupId(groupId)) return;
+  process.env.GROUP_ID = groupId;
+  setSetting("resolved_group_id", groupId);
+}
+
 async function resolveGroupChatId(client) {
-  const configured = (process.env.GROUP_ID || "").trim();
+  let configured = (process.env.GROUP_ID || "").trim();
   const nameHint = (process.env.GROUP_NAME || "Foot AAB").trim().toLowerCase();
+  const cached = (getSetting("resolved_group_id") || "").trim();
+
+  if (!isValidGroupId(configured) && isValidGroupId(cached)) {
+    configured = cached;
+    process.env.GROUP_ID = cached;
+    console.log(`→ GROUP_ID corrige depuis la base: ${cached}`);
+  }
+
   const groups = await listGroups(client);
 
   if (isValidGroupId(configured)) {
     try {
       const chat = await client.getChatById(configured);
       if (chat?.isGroup) {
-        return chat.id._serialized || configured;
+        const id = chat.id._serialized || configured;
+        rememberGroupId(id);
+        return id;
       }
     } catch {
       console.warn(`GROUP_ID configure introuvable sur WhatsApp: ${configured}`);
@@ -84,11 +102,14 @@ async function resolveGroupChatId(client) {
   const matched = groups.find((group) => group.name.toLowerCase().includes(nameHint));
   if (matched) {
     console.log(`→ Groupe auto-selectionne: ${matched.name} (${matched.id})`);
+    console.log(`→ Ajoutez dans /opt/football-bot/.env : GROUP_ID=${matched.id}`);
+    rememberGroupId(matched.id);
     return matched.id;
   }
 
   if (groups.length === 1) {
     console.log(`→ Seul groupe disponible: ${groups[0].name} (${groups[0].id})`);
+    rememberGroupId(groups[0].id);
     return groups[0].id;
   }
 

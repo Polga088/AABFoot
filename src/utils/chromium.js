@@ -44,7 +44,11 @@ function buildPuppeteerOptions() {
     "--no-first-run"
   ];
 
-  const options = { headless: true, args };
+  const options = {
+    headless: true,
+    args,
+    protocolTimeout: Number(process.env.PUPPETEER_PROTOCOL_TIMEOUT || 120000)
+  };
   if (executablePath) {
     options.executablePath = executablePath;
   }
