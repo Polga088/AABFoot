@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 from flask import Blueprint, current_app, jsonify, render_template, request
 
-from auth_utils import is_session_admin
+from auth_utils import admin_page_required, is_session_admin
 from match_format import format_max_players
 from routes.admin_utils import admin_guard
 
@@ -62,6 +62,7 @@ def _event_type_for_row(item):
 
 
 @calendar_bp.route("/calendrier", methods=["GET"])
+@admin_page_required
 def calendar_page():
     conn = current_app.get_db_connection()
     today = date.today()

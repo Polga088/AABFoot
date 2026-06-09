@@ -18,7 +18,7 @@
   <header class="site-header app-header">
     <div class="nav-shell">
       <nav class="navbar topbar">
-        <a href="/calendrier" class="nav-brand app-brand">
+        <a href="/matchs" class="nav-brand app-brand">
           <img
             src="{{ url_for('static', filename='brand/worldcup26/nav-mark.svg') }}"
             alt=""
@@ -32,8 +32,10 @@
           </span>
         </a>
         <div class="nav-links" role="navigation" aria-label="Menu principal">
+          <a href="/matchs" class="nav-item {{ 'active' if active_page == 'hist' }}">Historique</a>
+          {% if user_is_admin %}
           <a href="/calendrier" class="nav-item {{ 'active' if active_page == 'cal' }}">Calendrier</a>
-          <a href="/matchs" class="nav-item {{ 'active' if active_page == 'hist' }}">Matchs</a>
+          {% endif %}
           <a href="/statistiques" class="nav-item {{ 'active' if active_page == 'stats' }}">Stats</a>
           <a href="/coupe-du-monde" class="nav-item nav-item-cdm {{ 'active' if active_page == 'wc' }}">CDM 2026</a>
           {% if user_is_admin %}

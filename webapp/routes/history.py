@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+from datetime import date, datetime
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, render_template, request, session, url_for
@@ -71,57 +72,48 @@ def _match_title(row):
     return f"Entraînement {fmt}"
 
 
+def _parse_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(str(value)[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 @history_bp.route("/matchs", methods=["GET"])
 @login_required
 def history_page():
-    requested_filter = (request.args.get("filter", "all") or "all").lower()
-    valid = {"all", "pending", "done", "win", "loss", "draw"}
-    if requested_filter not in valid:
-        requested_filter = "all"
-
     conn = current_app.get_db_connection()
-    ensure_match_stats_tables(conn)
-
-    match_rows = conn.execute(
+    rows = conn.execute(
         """
         SELECT
-          m.id, m.date, m.time, m.location, m.status, m.event_kind, m.opponent, m.format,
-          m.score_a, m.score_b, m.notes, m.homme_du_match, m.motm_player_id,
-          (SELECT COUNT(*) FROM match_goals g WHERE g.match_id = m.id) AS goals_count,
-          (SELECT COUNT(*) FROM match_media mm WHERE mm.match_id = m.id AND mm.type = 'image') AS photos_count
-        FROM matches m
-        WHERE EXISTS (SELECT 1 FROM lineups l WHERE l.match_id = m.id)
-        ORDER BY m.date DESC, m.time DESC, m.id DESC
+          id, date, time, location, status, event_kind, opponent, format, maps_url, notes
+        FROM matches
+        ORDER BY date DESC, time DESC, id DESC
         """
     ).fetchall()
+    conn.close()
 
-    matches = []
-    for row in match_rows:
+    today = date.today()
+    upcoming_events = []
+    past_events = []
+    for row in rows:
         item = dict(row)
         item["title"] = _match_title(item)
-        item["result"] = _result_from_score(item["score_a"], item["score_b"])
-        item["is_done"] = item["status"] == "done" and item["score_a"] is not None
-        item["is_pending"] = not item["is_done"]
-        matches.append(item)
+        item["date_obj"] = _parse_date(item["date"])
+        if item["date_obj"] and item["date_obj"] >= today:
+            upcoming_events.append(item)
+        else:
+            past_events.append(item)
 
-    if requested_filter == "pending":
-        matches = [m for m in matches if m["is_pending"]]
-    elif requested_filter == "done":
-        matches = [m for m in matches if m["is_done"]]
-    elif requested_filter in {"win", "loss", "draw"}:
-        matches = [m for m in matches if m["result"] == requested_filter]
-
-    selected_match = matches[0] if matches else None
-    conn.close()
+    upcoming_events.sort(key=lambda x: (x["date_obj"] or today, x.get("time") or ""))
 
     return render_template(
         "history.html",
         active_page="hist",
-        matches=matches,
-        selected_match=selected_match,
-        filter=requested_filter,
-        user_is_admin=is_session_admin(),
-        current_player_id=session.get("player_id"),
+        upcoming_events=upcoming_events,
+        past_events=past_events,
     )
 
 

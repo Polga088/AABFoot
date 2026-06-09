@@ -657,3 +657,83 @@ body.matchcup26 .player-display-name {
   min-width: 120px;
   padding: 6px 8px;
 }
+
+body.matchcup26 .schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+body.matchcup26 .schedule-item {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+}
+
+body.matchcup26 .schedule-upcoming {
+  border-left: 4px solid #00a651;
+}
+
+body.matchcup26 .schedule-past {
+  opacity: 0.88;
+  border-left: 4px solid rgba(15, 23, 42, 0.15);
+}
+
+body.matchcup26 .schedule-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.matchcup26 .schedule-day {
+  font-weight: 800;
+  font-size: 14px;
+  color: #0b1f3a;
+}
+
+body.matchcup26 .schedule-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0046ad;
+}
+
+body.matchcup26 .schedule-title {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+body.matchcup26 .schedule-location {
+  font-size: 14px;
+  color: #475569;
+}
+
+body.matchcup26 .schedule-maps {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0046ad;
+}
+
+body.matchcup26 .schedule-notes {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  body.matchcup26 .schedule-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  body.matchcup26 .schedule-badge {
+    justify-self: start;
+  }
+}

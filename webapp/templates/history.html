@@ -1,139 +1,87 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="history-layout history-layout-v2">
-  <section class="card match-list-card">
-    <header class="card-title">
-      <span>Historique des matchs</span>
-      <span class="badge badge-blue">{{ matches|length }}</span>
-    </header>
+<section class="card schedule-card">
+  <header class="card-title">
+    <span>Historique des événements</span>
+    <span class="badge badge-blue">{{ upcoming_events|length + past_events|length }}</span>
+  </header>
+  <p class="metric-sub">Date, heure et lieu des entraînements et matchs planifiés.</p>
+</section>
 
-    <div class="filter-pills">
-      <a href="/matchs?filter=all" class="pill {{ 'active-pill' if filter == 'all' }}">Tous</a>
-      <a href="/matchs?filter=pending" class="pill {{ 'active-pill' if filter == 'pending' }}">À saisir</a>
-      <a href="/matchs?filter=done" class="pill {{ 'active-pill' if filter == 'done' }}">Terminés</a>
-      <a href="/matchs?filter=win" class="pill {{ 'active-pill' if filter == 'win' }}">Victoires</a>
-      <a href="/matchs?filter=loss" class="pill {{ 'active-pill' if filter == 'loss' }}">Défaites</a>
-      <a href="/matchs?filter=draw" class="pill {{ 'active-pill' if filter == 'draw' }}">Nuls</a>
-    </div>
-
-    <div class="match-list">
-      {% for match in matches %}
-      <article
-        class="match-card {{ 'active-card' if selected_match and selected_match.id == match.id }}"
-        data-match-id="{{ match.id }}"
-        onclick="fetchMatchDetail({{ match.id }})"
-      >
-        <div class="match-card-top">
-          <div class="match-date-block">{{ match.date }}</div>
-          <div class="match-main">
-            <div class="match-title">{{ match.title }}</div>
-            <div class="metric-sub">{{ match.location }} · {{ match.time }}</div>
-          </div>
-          <div class="match-card-badges">
-            {% if match.is_done %}
-              {% if match.result == 'win' %}
-              <span class="badge badge-green">{{ match.score_a }}-{{ match.score_b }}</span>
-              {% elif match.result == 'loss' %}
-              <span class="badge badge-red">{{ match.score_a }}-{{ match.score_b }}</span>
-              {% else %}
-              <span class="badge badge-amber">{{ match.score_a }}-{{ match.score_b }}</span>
-              {% endif %}
-            {% else %}
-              <span class="badge badge-amber">À saisir</span>
-            {% endif %}
-            {% if match.goals_count %}<span class="badge badge-blue">⚽ {{ match.goals_count }}</span>{% endif %}
-          </div>
-        </div>
-      </article>
-      {% else %}
-      <p class="metric-sub">Aucun match avec composition validée. Créez un lineup depuis le calendrier.</p>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="card match-detail-card" id="matchDetailPane" data-selected-id="{{ selected_match.id if selected_match else '' }}" data-is-admin="{{ '1' if user_is_admin else '0' }}">
-    <header class="card-title">
-      <span id="detailMatchTitle">Détail du match</span>
-      <span id="manOfTheMatchBadge" class="badge badge-gold" style="display:none;"></span>
-    </header>
-
-    <div id="scoreDisplay" class="score-display">— —</div>
-    <div class="teams-labels">
-      <span id="teamALabel">Équipe A</span>
-      <span id="teamBLabel">Équipe B</span>
-    </div>
-
-    {% if user_is_admin %}
-    <section class="result-form-panel" id="adminResultPanel">
-      <h4 class="section-heading">Résultat & buteurs</h4>
-      <div class="form-row form-row-2">
-        <div>
-          <label class="form-label">Score équipe A</label>
-          <input type="number" min="0" id="scoreAInput" class="form-input" value="0">
-        </div>
-        <div>
-          <label class="form-label">Score équipe B</label>
-          <input type="number" min="0" id="scoreBInput" class="form-input" value="0">
-        </div>
+{% if upcoming_events %}
+<section class="card schedule-card">
+  <header class="card-title">
+    <span>À venir</span>
+    <span class="badge badge-green">{{ upcoming_events|length }}</span>
+  </header>
+  <div class="schedule-list">
+    {% for event in upcoming_events %}
+    <article class="schedule-item schedule-upcoming">
+      <div class="schedule-date">
+        <span class="schedule-day">{{ event.date }}</span>
+        <span class="schedule-time">{{ event.time }}</span>
       </div>
-      <div class="goals-editor">
-        <div class="goals-editor-head">
-          <span class="form-label">Buteurs & passes décisives</span>
-          <button type="button" class="btn btn-sm" id="addGoalBtn">+ Ajouter un but</button>
-        </div>
-        <div id="goalsList"></div>
+      <div class="schedule-body">
+        <div class="schedule-title">{{ event.title }}</div>
+        <div class="schedule-location">📍 {{ event.location or 'Lieu à confirmer' }}</div>
+        {% if event.maps_url %}
+        <a class="schedule-maps" href="{{ event.maps_url }}" target="_blank" rel="noopener">Voir sur Google Maps</a>
+        {% endif %}
+        {% if event.notes %}
+        <p class="schedule-notes">{{ event.notes }}</p>
+        {% endif %}
       </div>
-      <div class="form-row">
-        <label class="form-label">Notes</label>
-        <textarea id="matchNotesInput" class="form-input" rows="2" placeholder="Commentaire optionnel"></textarea>
+      <div class="schedule-badge">
+        {% if event.event_kind == 'match' %}
+        <span class="badge badge-green">Match</span>
+        {% else %}
+        <span class="badge badge-blue">Entraînement</span>
+        {% endif %}
       </div>
-      <button type="button" class="btn btn-primary" id="saveResultBtn">Enregistrer le match</button>
-      <p id="saveResultFeedback" class="form-feedback" aria-live="polite"></p>
-    </section>
-    {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 
-    <section class="motm-panel" id="motmPanel">
-      <h4 class="section-heading">⭐ Vote meilleur joueur</h4>
-      <p class="metric-sub" id="motmHint">Réservé aux joueurs de la composition.</p>
-      <div id="motmVoteOptions" class="motm-vote-grid"></div>
-      <div id="motmTally" class="motm-tally"></div>
-    </section>
-
-    <div class="lineup-grid">
-      <div>
-        <h4>Composition A</h4>
-        <div id="teamAList"></div>
+<section class="card schedule-card">
+  <header class="card-title">
+    <span>Passés</span>
+    <span class="badge badge-amber">{{ past_events|length }}</span>
+  </header>
+  {% if past_events %}
+  <div class="schedule-list">
+    {% for event in past_events %}
+    <article class="schedule-item schedule-past">
+      <div class="schedule-date">
+        <span class="schedule-day">{{ event.date }}</span>
+        <span class="schedule-time">{{ event.time }}</span>
       </div>
-      <div>
-        <h4>Composition B</h4>
-        <div id="teamBList"></div>
+      <div class="schedule-body">
+        <div class="schedule-title">{{ event.title }}</div>
+        <div class="schedule-location">📍 {{ event.location or '—' }}</div>
+        {% if event.maps_url %}
+        <a class="schedule-maps" href="{{ event.maps_url }}" target="_blank" rel="noopener">Voir sur Google Maps</a>
+        {% endif %}
       </div>
-    </div>
-
-    <section class="media-section">
-      <h4 class="section-heading">Galerie</h4>
-      <div id="mediaGrid" class="media-grid"></div>
-      {% if user_is_admin %}
-      <input id="mediaInput" type="file" hidden accept="image/*,video/mp4,video/quicktime">
-      <div id="uploadDropzone" class="upload-dropzone" onclick="triggerUploadPicker()">
-        Dépose un média ou clique pour uploader
+      <div class="schedule-badge">
+        {% if event.event_kind == 'match' %}
+        <span class="badge">Match</span>
+        {% else %}
+        <span class="badge">Entraînement</span>
+        {% endif %}
       </div>
-      {% endif %}
-    </section>
-  </section>
-</div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="metric-sub">Aucun événement passé pour le moment.</p>
+  {% endif %}
+</section>
 
-<div id="lightboxOverlay" class="lightbox-overlay" style="display:none;">
-  <button class="lightbox-btn lightbox-prev" onclick="lightboxPrev()">‹</button>
-  <img id="lightboxImage" src="" alt="Aperçu">
-  <button class="lightbox-btn lightbox-next" onclick="lightboxNext()">›</button>
-  <button class="lightbox-btn lightbox-close" onclick="lightboxClose()">✕</button>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  window.FOOTBOT_CURRENT_PLAYER_ID = {{ current_player_id or 'null' }};
-</script>
-<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% if not upcoming_events and not past_events %}
+<section class="card schedule-card">
+  <p class="metric-sub">Aucun événement planifié. L’admin peut en créer depuis le calendrier.</p>
+</section>
+{% endif %}
 {% endblock %}
