@@ -53,9 +53,20 @@ function getPhoneLookupVariants(rawPhone) {
   return [...variants].filter(Boolean);
 }
 
+function formatLocalPhone(phone) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return "";
+  const digits = normalized.replace("@c.us", "");
+  if (digits.startsWith("212") && digits.length >= 12) {
+    return `0${digits.slice(3)}`;
+  }
+  return digits;
+}
+
 module.exports = {
   digitsOnly,
   toCanonicalDigits,
   normalizePhone,
-  getPhoneLookupVariants
+  getPhoneLookupVariants,
+  formatLocalPhone
 };

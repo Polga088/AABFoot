@@ -17,6 +17,7 @@ function formatHelpMessage(botName = "FootBot") {
     "`!addplayer Prenom 212XXXXXXXXX` - Ajouter un joueur",
     "`!addmatch 2026-06-01 21:00 Terrain Municipal` - Ajouter un match",
     "`!stats` - Statistiques equipe",
+    "`!numeros` - Numeros du groupe non enregistres (admin)",
     "`!broadcast Message...` - Diffusion au groupe",
     "",
     "💡 Exemple: `!dispo oui`"
