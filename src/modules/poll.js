@@ -135,9 +135,9 @@ async function handlePollVote(client, vote) {
         voterId,
         [
           "⚠️ *Vote non pris en compte*",
-          "Vous n'etes pas encore dans la liste de l'equipe.",
-          "Demandez a l'admin de vous ajouter (page *Joueurs* sur la webapp),",
-          "puis revotez sur le sondage."
+          "Votre numero n'est pas reconnu dans la liste de l'equipe.",
+          "Demandez a l'admin de vous ajouter sur */joueurs* avec votre numero *06…* ou *212…*,",
+          "puis revotez sur le sondage (le wallet sera debite uniquement si vous etes enregistre)."
         ].join("\n")
       );
     } catch (error) {

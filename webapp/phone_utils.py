@@ -7,6 +7,16 @@ def is_valid_player_phone_digits(digits):
     return bool(re.fullmatch(r"212[67]\d{8}", digits))
 
 
+def is_whatsapp_internal_id(raw_phone):
+    """LID WhatsApp — pas un numéro marocain (ex. 137220044378212@c.us)."""
+    if not raw_phone:
+        return True
+    if normalize_phone(raw_phone):
+        return False
+    user_part = (raw_phone or "").split("@", 1)[0]
+    return bool(re.sub(r"\D", "", user_part))
+
+
 def to_canonical_digits(raw_phone):
     digits = re.sub(r"\D", "", raw_phone or "")
     if not digits:

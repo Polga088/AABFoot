@@ -4,6 +4,8 @@ const { askOllama } = require("../llm/ollama");
 const { db } = require("../db/database");
 const { applyVoteCotisation, getCotisationAmount } = require("../modules/matchCotisation");
 const { canAcceptYesVote } = require("../modules/matchLimits");
+const { findPlayerByPhone } = require("../modules/players");
+const { normalizePhone, isWhatsAppInternalId } = require("../utils/phone");
 
 function isAdmin(player, phone) {
   return Boolean(player && (player.role === "admin" || phone === process.env.ADMIN_PHONE));
@@ -95,16 +97,24 @@ async function handleMessage(client, msg) {
       if (!isCommand && !isMentioned) return;
     }
 
-    let player = db.prepare("SELECT * FROM players WHERE phone = ?").get(from);
+    const senderId = (msg.author || from || "").trim();
+    let player = findPlayerByPhone(senderId);
 
     if (!player) {
       const joinMatch = text.match(/^!join\s+(\w+)/i);
       if (joinMatch) {
         const name = joinMatch[1];
+        const phone = normalizePhone(senderId);
+        if (!phone || isWhatsAppInternalId(senderId)) {
+          await msg.reply(
+            "⚠️ Numero WhatsApp non reconnu. Demandez a l'admin de vous ajouter sur la webapp (/joueurs) avec votre 06… ou 212…"
+          );
+          return;
+        }
         const tx = db.transaction(() => {
           const result = db
             .prepare("INSERT INTO players (name, phone, role, active) VALUES (?, ?, 'player', 1)")
-            .run(name, from);
+            .run(name, phone);
           db.prepare("INSERT INTO wallets (player_id, balance) VALUES (?, 0)").run(result.lastInsertRowid);
         });
         tx();
@@ -113,7 +123,7 @@ async function handleMessage(client, msg) {
         return;
       }
 
-      await msg.reply("⚽ Salut ! Tape *!join TonPrenom* pour rejoindre l'équipe.");
+      await msg.reply("⚽ Salut ! Demandez a l'admin de vous ajouter sur la webapp, ou tape *!join TonPrenom* (06/212 requis).");
       return;
     }
 
@@ -274,7 +284,13 @@ async function handleMessage(client, msg) {
           break;
         }
 
-        const exists = db.prepare("SELECT id FROM players WHERE phone = ?").get(value.phone);
+        const phone = normalizePhone(value.phone);
+        if (!phone || isWhatsAppInternalId(value.phone)) {
+          response = "Numero invalide (LID refuse). Utilisez 06… ou 212…";
+          break;
+        }
+
+        const exists = findPlayerByPhone(phone);
         if (exists) {
           response = "Ce joueur existe déjà.";
           break;
@@ -283,7 +299,7 @@ async function handleMessage(client, msg) {
         const tx = db.transaction(() => {
           const result = db
             .prepare("INSERT INTO players (name, phone, role, active) VALUES (?, ?, 'player', 1)")
-            .run(value.name, value.phone);
+            .run(value.name, phone);
           db.prepare("INSERT INTO wallets (player_id, balance) VALUES (?, 0)").run(result.lastInsertRowid);
         });
         tx();

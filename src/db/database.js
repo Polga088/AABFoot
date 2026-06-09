@@ -83,6 +83,19 @@ function ensureAvailabilityColumns() {
   }
 }
 
+function deactivateInvalidPhonePlayers() {
+  const { normalizePhone, isWhatsAppInternalId } = require("../utils/phone");
+  const rows = db.prepare("SELECT id, phone FROM players WHERE active = 1").all();
+  const deactivate = db.prepare("UPDATE players SET active = 0 WHERE id = ?");
+
+  for (const row of rows) {
+    if (!row.phone || isWhatsAppInternalId(row.phone) || !normalizePhone(row.phone)) {
+      deactivate.run(row.id);
+      console.warn(`Joueur #${row.id} desactive — ID/LID invalide: ${row.phone}`);
+    }
+  }
+}
+
 function normalizePlayerPhones() {
   const { normalizePhone } = require("../utils/phone");
   const rows = db.prepare("SELECT id, phone FROM players ORDER BY id ASC").all();
@@ -148,6 +161,7 @@ function initDatabase() {
   ensureMatchColumns();
   ensurePlayerColumns();
   normalizePlayerPhones();
+  deactivateInvalidPhonePlayers();
   ensureAvailabilityColumns();
   ensureBotTasksTable();
   const { ensureAppSettingsTable } = require("../modules/appSettings");

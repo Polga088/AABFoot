@@ -1,5 +1,5 @@
-const { findPlayerByPhone } = require("./players");
-const { formatLocalPhone } = require("../utils/phone");
+const { findPlayerByPhone, resolveVoterPhone } = require("./players");
+const { formatLocalPhone, isWhatsAppInternalId } = require("../utils/phone");
 
 function participantId(participant) {
   const raw = participant?.id;
@@ -38,6 +38,26 @@ async function scanGroupForUnknownPlayers(client, groupChatId) {
       continue;
     }
     if (botId && waId === botId) {
+      skipped += 1;
+      continue;
+    }
+
+    if (isWhatsAppInternalId(waId)) {
+      const resolved = await resolveVoterPhone(client, waId);
+      if (resolved) {
+        const existingResolved = findPlayerByPhone(resolved);
+        if (existingResolved) {
+          registeredCount += 1;
+          continue;
+        }
+        const displayName = await resolveContactName(client, waId);
+        unknown.push({
+          waId,
+          phone: formatLocalPhone(resolved),
+          name: displayName
+        });
+        continue;
+      }
       skipped += 1;
       continue;
     }

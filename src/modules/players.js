@@ -1,5 +1,9 @@
 const { db } = require("../db/database");
-const { normalizePhone, getPhoneLookupVariants } = require("../utils/phone");
+const {
+  normalizePhone,
+  getPhoneLookupVariants,
+  isWhatsAppInternalId
+} = require("../utils/phone");
 
 function findPlayerByPhone(rawPhone) {
   const variants = getPhoneLookupVariants(rawPhone);
@@ -11,10 +15,14 @@ function findPlayerByPhone(rawPhone) {
     .get(...variants);
 }
 
+/**
+ * Ne crée JAMAIS de joueur — réservé aux imports admin explicites ailleurs.
+ * Retourne un joueur existant ou lève une erreur.
+ */
 function ensurePlayerFromWhatsApp(phone, displayName) {
   const normalized = normalizePhone(phone);
-  if (!normalized) {
-    throw new Error("Numero WhatsApp invalide.");
+  if (!normalized || isWhatsAppInternalId(phone)) {
+    throw new Error("Numero WhatsApp invalide (LID interne refuse).");
   }
 
   const existing = findPlayerByPhone(normalized);
@@ -22,50 +30,97 @@ function ensurePlayerFromWhatsApp(phone, displayName) {
     return existing;
   }
 
-  const safeName = (displayName || "Joueur").trim().slice(0, 80) || "Joueur";
-  const tx = db.transaction(() => {
-    const result = db
-      .prepare("INSERT INTO players (name, phone, role, active) VALUES (?, ?, 'player', 1)")
-      .run(safeName, normalized);
-    db.prepare("INSERT INTO wallets (player_id, balance) VALUES (?, 0)").run(result.lastInsertRowid);
-    return db.prepare("SELECT * FROM players WHERE id = ?").get(result.lastInsertRowid);
-  });
+  throw new Error(
+    "Joueur non enregistre. Ajoutez-le via la webapp /joueurs (pas de creation auto au vote)."
+  );
+}
 
-  return tx();
+async function resolvePhoneViaWhatsAppApi(client, userId) {
+  if (!client?.pupPage || !userId) return null;
+
+  try {
+    const serialized = await client.pupPage.evaluate(async (id) => {
+      const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(id);
+      const candidates = [];
+
+      const pushWid = (wid) => {
+        if (!wid) return;
+        const serializedId = wid._serialized || wid;
+        if (serializedId) candidates.push(serializedId);
+      };
+
+      pushWid(phone);
+      pushWid(lid);
+
+      const factory = window.require("WAWebWidFactory");
+      const apiContact = window.require("WAWebApiContact");
+
+      for (const candidate of [...candidates, id]) {
+        try {
+          const wid = factory.createWid(candidate);
+          if (wid.server === "lid") {
+            pushWid(apiContact.getPhoneNumber(wid));
+          } else if (String(wid.user || "").length > 12) {
+            const mappedLid = apiContact.getCurrentLid(wid);
+            pushWid(apiContact.getPhoneNumber(mappedLid || wid));
+          }
+        } catch {
+          /* ignore single candidate */
+        }
+      }
+
+      return candidates;
+    }, userId);
+
+    const list = Array.isArray(serialized) ? serialized : [serialized];
+    for (const candidate of list) {
+      const normalized = normalizePhone(candidate);
+      if (normalized) return normalized;
+    }
+  } catch (error) {
+    console.warn("Resolution WhatsApp API echouee:", error.message);
+  }
+
+  return null;
 }
 
 async function resolveVoterPhone(client, voterId) {
   if (!voterId) return null;
 
-  const direct = normalizePhone(voterId);
-  if (direct) return direct;
+  const candidates = new Set([String(voterId).trim()]);
 
   if (client?.getContactLidAndPhone) {
     try {
       const mapped = await client.getContactLidAndPhone([voterId]);
       const entry = mapped?.[0];
-      if (entry?.pn) {
-        const fromPn = normalizePhone(entry.pn);
-        if (fromPn) return fromPn;
-      }
+      if (entry?.pn) candidates.add(entry.pn);
+      if (entry?.lid) candidates.add(entry.lid);
     } catch (error) {
       console.warn("Mapping LID→telephone echoue:", error.message);
     }
   }
 
+  const viaApi = await resolvePhoneViaWhatsAppApi(client, voterId);
+  if (viaApi) return viaApi;
+
   try {
     const contact = await client.getContactById(voterId);
-    const candidates = [
+    const contactCandidates = [
       contact?.number,
       contact?.id?.server === "c.us" ? contact?.id?.user : null,
       contact?.id?._serialized
     ];
-    for (const candidate of candidates) {
-      const normalized = normalizePhone(candidate);
-      if (normalized) return normalized;
+    for (const candidate of contactCandidates) {
+      if (candidate) candidates.add(candidate);
     }
   } catch (error) {
     console.warn("Contact vote introuvable:", error.message);
+  }
+
+  for (const candidate of candidates) {
+    if (isWhatsAppInternalId(candidate)) continue;
+    const normalized = normalizePhone(candidate);
+    if (normalized) return normalized;
   }
 
   return null;
@@ -73,8 +128,15 @@ async function resolveVoterPhone(client, voterId) {
 
 async function findRegisteredPlayerForVote(client, voterId) {
   const phone = await resolveVoterPhone(client, voterId);
-  if (!phone) return null;
-  return findPlayerByPhone(phone);
+  if (!phone) {
+    console.warn(`Vote: impossible de resoudre le telephone (voter=${voterId})`);
+    return null;
+  }
+  const player = findPlayerByPhone(phone);
+  if (!player) {
+    console.warn(`Vote: joueur non en base pour ${phone} (voter=${voterId})`);
+  }
+  return player;
 }
 
 async function resolveVoterName(client, voterId) {
@@ -92,6 +154,7 @@ module.exports = {
   findPlayerByPhone,
   ensurePlayerFromWhatsApp,
   resolveVoterPhone,
+  resolvePhoneViaWhatsAppApi,
   findRegisteredPlayerForVote,
   resolveVoterName
 };

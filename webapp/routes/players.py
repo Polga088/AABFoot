@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from auth_utils import admin_page_required
-from phone_utils import find_player_row_by_phone, format_local_phone
+from phone_utils import find_player_row_by_phone, format_local_phone, is_whatsapp_internal_id
 from player_utils import apply_id_label, player_id_label
 from routes.admin_utils import admin_guard, normalize_phone
 
@@ -71,6 +71,13 @@ def create_player():
 
     if not phone:
         return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
+    if is_whatsapp_internal_id(payload.get("phone")):
+        return jsonify(
+            {
+                "success": False,
+                "error": "ID WhatsApp interne refuse. Utilisez un numero 06… ou 212…",
+            }
+        ), 400
 
     conn = current_app.get_db_connection()
     exists = find_player_row_by_phone(conn, phone)

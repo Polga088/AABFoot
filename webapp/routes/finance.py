@@ -9,7 +9,7 @@ from flask import Blueprint, Response, current_app, jsonify, render_template, re
 from app_settings import get_default_cotisation, set_default_cotisation
 from auth_utils import admin_page_required
 from player_utils import apply_id_label, player_cotisation_amount, player_public_label
-from phone_utils import find_player_row_by_phone
+from phone_utils import find_player_row_by_phone, is_whatsapp_internal_id
 from routes.admin_utils import admin_guard, normalize_phone
 
 LOW_BALANCE_THRESHOLD = -20
@@ -371,7 +371,11 @@ def import_finance():
 
     for index, row in enumerate(reader, start=2):
         try:
-            phone = normalize_phone(row.get("phone") or row.get("telephone") or "")
+            raw_phone = row.get("phone") or row.get("telephone") or ""
+            if is_whatsapp_internal_id(raw_phone):
+                errors.append(f"Ligne {index}: ID WhatsApp interne refuse (utilisez 06/212)")
+                continue
+            phone = normalize_phone(raw_phone)
             if not phone:
                 errors.append(f"Ligne {index}: telephone manquant")
                 continue

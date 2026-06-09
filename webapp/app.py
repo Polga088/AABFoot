@@ -139,6 +139,21 @@ def ensure_bot_tasks_table(db_path):
         conn.close()
 
 
+def deactivate_invalid_phone_players(db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        from phone_utils import is_whatsapp_internal_id, normalize_phone
+
+        rows = conn.execute("SELECT id, phone FROM players WHERE active = 1").fetchall()
+        for row in rows:
+            if not row["phone"] or is_whatsapp_internal_id(row["phone"]) or not normalize_phone(row["phone"]):
+                conn.execute("UPDATE players SET active = 0 WHERE id = ?", (row["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def normalize_player_phones(db_path):
     conn = sqlite3.connect(db_path)
     try:
@@ -217,6 +232,7 @@ def create_app():
     ensure_match_columns(db_path)
     ensure_player_columns(db_path)
     normalize_player_phones(db_path)
+    deactivate_invalid_phone_players(db_path)
     ensure_player_auth_columns(db_path)
     ensure_availability_columns(db_path)
     ensure_bot_tasks_table(db_path)

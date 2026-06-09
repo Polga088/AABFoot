@@ -12,6 +12,13 @@ function isValidPlayerPhoneDigits(digits) {
   return /^212[67]\d{8}$/.test(digits);
 }
 
+/** ID interne WhatsApp (LID) — pas un numéro marocain enregistrable */
+function isWhatsAppInternalId(raw) {
+  if (!raw) return true;
+  if (normalizePhone(raw)) return false;
+  return digitsOnly(String(raw).replace(/@.*/, "")).length > 0;
+}
+
 function toCanonicalDigits(raw) {
   let digits = digitsOnly(raw);
   if (!digits) return "";
@@ -69,6 +76,7 @@ function formatLocalPhone(phone) {
 module.exports = {
   digitsOnly,
   isValidPlayerPhoneDigits,
+  isWhatsAppInternalId,
   toCanonicalDigits,
   normalizePhone,
   getPhoneLookupVariants,
