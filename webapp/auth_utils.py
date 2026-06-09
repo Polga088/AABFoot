@@ -48,19 +48,9 @@ def verify_pin(pin, password_hash):
 
 
 def find_player_by_phone(conn, raw_phone):
-    candidates = normalize_phone_candidates(raw_phone)
-    if not candidates:
-        return None
-    placeholders = ",".join(["?"] * len(candidates))
-    return conn.execute(
-        f"""
-        SELECT id, name, first_name, last_name, phone, role, active, password_hash, display_name
-        FROM players
-        WHERE phone IN ({placeholders})
-        LIMIT 1
-        """,
-        tuple(candidates),
-    ).fetchone()
+    from phone_utils import find_player_row_by_phone
+
+    return find_player_row_by_phone(conn, raw_phone)
 
 
 def player_display_name(player_row):

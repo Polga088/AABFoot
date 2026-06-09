@@ -83,6 +83,23 @@ function ensureAvailabilityColumns() {
   }
 }
 
+function normalizePlayerPhones() {
+  const { normalizePhone } = require("../utils/phone");
+  const rows = db.prepare("SELECT id, phone FROM players ORDER BY id ASC").all();
+
+  const updatePhone = db.prepare("UPDATE players SET phone = ? WHERE id = ?");
+  const findConflict = db.prepare(
+    "SELECT id FROM players WHERE phone = ? AND id != ? LIMIT 1"
+  );
+
+  for (const row of rows) {
+    const canonical = normalizePhone(row.phone);
+    if (!canonical || row.phone === canonical) continue;
+    if (findConflict.get(canonical, row.id)) continue;
+    updatePhone.run(canonical, row.id);
+  }
+}
+
 function seedPlayersIfEmpty() {
   const row = db.prepare("SELECT COUNT(*) AS count FROM players").get();
   if ((row?.count || 0) > 0) return;
@@ -130,6 +147,7 @@ function initDatabase() {
   db.exec(schema);
   ensureMatchColumns();
   ensurePlayerColumns();
+  normalizePlayerPhones();
   ensureAvailabilityColumns();
   ensureBotTasksTable();
   const { ensureAppSettingsTable } = require("../modules/appSettings");

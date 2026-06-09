@@ -52,3 +52,44 @@ def normalize_phone_candidates(raw_phone):
         candidates.add(f"{local}@c.us")
 
     return {c for c in candidates if c}
+
+
+def format_local_phone(raw_phone):
+    canonical = normalize_phone(raw_phone)
+    if not canonical:
+        return ""
+    digits = canonical.replace("@c.us", "")
+    if digits.startswith("212") and len(digits) >= 12:
+        return f"0{digits[3:]}"
+    return digits
+
+
+def find_player_row_by_phone(conn, raw_phone):
+    """Match joueur par 06… ou 212… (toutes variantes)."""
+    candidates = normalize_phone_candidates(raw_phone)
+    if not candidates:
+        return None
+    placeholders = ",".join(["?"] * len(candidates))
+    return conn.execute(
+        f"SELECT * FROM players WHERE phone IN ({placeholders}) LIMIT 1",
+        tuple(candidates),
+    ).fetchone()
+
+
+def normalize_players_in_db(conn):
+    """Stocke tous les téléphones au format canonique 212…@c.us quand possible."""
+    rows = conn.execute("SELECT id, phone FROM players ORDER BY id ASC").fetchall()
+    updated = 0
+    for row in rows:
+        canonical = normalize_phone(row["phone"])
+        if not canonical or row["phone"] == canonical:
+            continue
+        conflict = conn.execute(
+            "SELECT id FROM players WHERE phone = ? AND id != ?",
+            (canonical, row["id"]),
+        ).fetchone()
+        if conflict:
+            continue
+        conn.execute("UPDATE players SET phone = ? WHERE id = ?", (canonical, row["id"]))
+        updated += 1
+    return updated

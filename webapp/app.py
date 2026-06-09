@@ -139,6 +139,17 @@ def ensure_bot_tasks_table(db_path):
         conn.close()
 
 
+def normalize_player_phones(db_path):
+    conn = sqlite3.connect(db_path)
+    try:
+        from phone_utils import normalize_players_in_db
+
+        normalize_players_in_db(conn)
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def ensure_app_settings_table(db_path):
     conn = sqlite3.connect(db_path)
     try:
@@ -205,6 +216,7 @@ def create_app():
 
     ensure_match_columns(db_path)
     ensure_player_columns(db_path)
+    normalize_player_phones(db_path)
     ensure_player_auth_columns(db_path)
     ensure_availability_columns(db_path)
     ensure_bot_tasks_table(db_path)

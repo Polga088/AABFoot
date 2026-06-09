@@ -43,6 +43,7 @@
       <div>
         <label class="form-label" for="playerPhone">Téléphone WhatsApp</label>
         <input id="playerPhone" name="phone" class="form-input" placeholder="0663104773 ou 212663104773" required>
+        <p id="playerPhoneHint" class="auth-hint">06… et 212… sont équivalents.</p>
       </div>
       <div>
         <label class="form-label" for="playerDisplayName">Nom (admin)</label>
@@ -88,7 +89,7 @@
               maxlength="40"
             >
           </td>
-          <td>{{ p.phone }}</td>
+          <td><code title="{{ p.phone }}">{{ p.phone_local or p.phone }}</code></td>
           <td>{{ "%.2f"|format(p.balance) }} dh</td>
           <td>
             {% if p.active %}
@@ -120,5 +121,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/phone.js') }}"></script>
 <script src="{{ url_for('static', filename='js/players.js') }}"></script>
+<script>
+  bindPhoneInput(document.getElementById("playerPhone"), document.getElementById("playerPhoneHint"));
+</script>
 {% endblock %}

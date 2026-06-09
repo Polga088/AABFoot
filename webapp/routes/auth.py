@@ -69,7 +69,7 @@ def login_submit():
             render_template(
                 "auth/login.html",
                 active_page="auth",
-                error="Numéro non reconnu. Vérifie le format (ex. 212612345678).",
+                error="Numéro non reconnu. Essaie 0663104773 ou 212663104773 (même format).",
                 info=None,
                 next_url=request.form.get("next") or "",
             ),

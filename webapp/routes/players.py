@@ -4,6 +4,7 @@ import os
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from auth_utils import admin_page_required
+from phone_utils import find_player_row_by_phone, format_local_phone
 from player_utils import apply_id_label, player_id_label
 from routes.admin_utils import admin_guard, normalize_phone
 
@@ -45,6 +46,7 @@ def players_page():
         item = dict(row)
         item["balance"] = round(float(item["balance"] or 0), 2)
         item["active"] = bool(item["active"])
+        item["phone_local"] = format_local_phone(item.get("phone") or "")
         players.append(item)
 
     return render_template(
@@ -71,7 +73,7 @@ def create_player():
         return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
 
     conn = current_app.get_db_connection()
-    exists = conn.execute("SELECT id FROM players WHERE phone = ?", (phone,)).fetchone()
+    exists = find_player_row_by_phone(conn, phone)
     if exists:
         conn.close()
         return jsonify({"success": False, "error": "Ce numero existe deja"}), 409
@@ -125,11 +127,8 @@ def update_player(player_id):
         return jsonify({"success": False, "error": "Joueur introuvable"}), 404
 
     if phone:
-        other = conn.execute(
-            "SELECT id FROM players WHERE phone = ? AND id != ?",
-            (phone, player_id),
-        ).fetchone()
-        if other:
+        other = find_player_row_by_phone(conn, phone)
+        if other and other["id"] != player_id:
             conn.close()
             return jsonify({"success": False, "error": "Ce numero existe deja"}), 409
 

@@ -9,6 +9,7 @@ from flask import Blueprint, Response, current_app, jsonify, render_template, re
 from app_settings import get_default_cotisation, set_default_cotisation
 from auth_utils import admin_page_required
 from player_utils import apply_id_label, player_cotisation_amount, player_public_label
+from phone_utils import find_player_row_by_phone
 from routes.admin_utils import admin_guard, normalize_phone
 
 LOW_BALANCE_THRESHOLD = -20
@@ -378,7 +379,7 @@ def import_finance():
             amount = float(row.get("amount") or row.get("montant") or row.get("balance") or 0)
             description = (row.get("description") or "Import CSV").strip()
 
-            player = conn.execute("SELECT id FROM players WHERE phone = ?", (phone,)).fetchone()
+            player = find_player_row_by_phone(conn, phone)
 
             if not player:
                 cur = conn.execute(

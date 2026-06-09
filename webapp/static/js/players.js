@@ -212,8 +212,8 @@ document.querySelectorAll(".btn-edit-player").forEach((btn) => {
     if (!player) return;
 
     const phone = window.prompt(
-      `Telephone pour le joueur #${player.id}`,
-      (player.phone || "").replace("@c.us", "")
+      `Telephone pour le joueur #${player.id} (06… ou 212…)`,
+      player.phone_local || formatLocalPhone(player.phone || "") || (player.phone || "").replace("@c.us", "")
     );
     if (phone === null) return;
 

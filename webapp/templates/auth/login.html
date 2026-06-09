@@ -26,11 +26,13 @@
           name="phone"
           type="tel"
           class="form-input"
-          placeholder="212612345678"
+          placeholder="0663104773 ou 212663104773"
           autocomplete="tel"
+          inputmode="tel"
           required
           autofocus
         >
+        <p id="phoneHint" class="auth-hint">Format accepté : 06… ou 212… (même numéro).</p>
       </div>
       <div class="form-row">
         <label for="pin" class="form-label">Code PIN</label>
@@ -55,4 +57,11 @@
     </p>
   </article>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/phone.js') }}"></script>
+<script>
+  bindPhoneInput(document.getElementById("phone"), document.getElementById("phoneHint"));
+</script>
 {% endblock %}
