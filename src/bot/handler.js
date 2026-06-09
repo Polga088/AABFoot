@@ -4,12 +4,6 @@ const { askOllama } = require("../llm/ollama");
 const { db } = require("../db/database");
 const { applyVoteCotisation } = require("../modules/matchCotisation");
 const { canAcceptYesVote } = require("../modules/matchLimits");
-const { findPlayerByPhone } = require("../modules/players");
-const {
-  scanGroupForUnknownPlayers,
-  formatScanReport,
-  replyLongMessage
-} = require("../modules/groupScan");
 
 function isAdmin(player, phone) {
   return Boolean(player && (player.role === "admin" || phone === process.env.ADMIN_PHONE));
@@ -90,48 +84,6 @@ async function handleMessage(client, msg) {
         ].join("\n")
       );
       console.log(`!groupid → ${chatName}: ${chatId}`);
-      return;
-    }
-
-    if (/^!(numeros|nouveaux|scanjoueurs)$/i.test(text)) {
-      const senderPhone = (msg.author || from || "").trim();
-      const senderPlayer = findPlayerByPhone(senderPhone);
-      if (!isAdminSender(msg, senderPlayer)) {
-        await msg.reply("Commande reservee a l'admin.");
-        return;
-      }
-
-      try {
-        const currentChat = await msg.getChat();
-        const groupChatId = currentChat.isGroup
-          ? currentChat.id?._serialized || from
-          : (process.env.GROUP_ID || "").trim();
-
-        if (!groupChatId?.endsWith("@g.us")) {
-          await msg.reply(
-            [
-              "Ouvrez le groupe equipe et retapez *!numeros*,",
-              "ou configurez GROUP_ID dans .env puis relancez depuis un chat prive."
-            ].join("\n")
-          );
-          return;
-        }
-
-        await msg.reply("⏳ Scan des numeros du groupe en cours...");
-        const result = await scanGroupForUnknownPlayers(client, groupChatId);
-        const report = formatScanReport(result);
-        await replyLongMessage(msg, report);
-        console.log(
-          `!numeros → ${result.groupName}: ${result.unknown.length} nouveau(x) sur ${result.totalParticipants}`
-        );
-      } catch (error) {
-        console.error("Erreur scan numeros:", error);
-        if (error.code === "not_a_group") {
-          await msg.reply("Ce chat n'est pas un groupe WhatsApp.");
-        } else {
-          await msg.reply("Impossible de scanner le groupe. Reessayez dans quelques secondes.");
-        }
-      }
       return;
     }
 
@@ -337,11 +289,6 @@ async function handleMessage(client, msg) {
         tx();
 
         response = `✅ Joueur ajouté: ${value.name} (${value.phone}).`;
-        break;
-      }
-
-      case "admin_extract_numbers": {
-        response = "Utilisez cette commande dans le groupe equipe : *!numeros*";
         break;
       }
 

@@ -62,10 +62,6 @@ async function parseIntent(text = "", phone = "") {
       intent: "admin_stats"
     },
     {
-      regex: /^!(numeros|nouveaux|scanjoueurs)$/i,
-      intent: "admin_extract_numbers"
-    },
-    {
       regex: /^!broadcast\s+(.+)/i,
       intent: "admin_broadcast",
       valueFromMatch: (match) => ({

@@ -110,6 +110,19 @@ function seedPlayersIfEmpty() {
   seed();
 }
 
+function ensureBotTasksTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS bot_tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_type TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      completed_at DATETIME,
+      result_json TEXT
+    )
+  `);
+}
+
 function initDatabase() {
   db.pragma("foreign_keys = ON");
   const schemaPath = path.join(__dirname, "schema.sql");
@@ -118,6 +131,7 @@ function initDatabase() {
   ensureMatchColumns();
   ensurePlayerColumns();
   ensureAvailabilityColumns();
+  ensureBotTasksTable();
   seedPlayersIfEmpty();
 }
 

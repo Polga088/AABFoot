@@ -1,3 +1,4 @@
+import json
 import os
 
 from flask import Blueprint, current_app, jsonify, render_template, request
@@ -64,6 +65,7 @@ def create_player():
     payload = request.get_json(silent=True) or request.form
     phone = normalize_phone(payload.get("phone"))
     initial_balance = float(payload.get("initial_balance") or 0)
+    display_name = (payload.get("display_name") or "").strip() or None
 
     if not phone:
         return jsonify({"success": False, "error": "Telephone obligatoire"}), 400
@@ -76,10 +78,10 @@ def create_player():
 
     cur = conn.execute(
         """
-        INSERT INTO players (name, first_name, last_name, phone, role, active)
-        VALUES (?, '', '', ?, 'player', 1)
+        INSERT INTO players (name, first_name, last_name, phone, role, active, display_name)
+        VALUES (?, '', '', ?, 'player', 1, ?)
         """,
-        ("-", phone),
+        ("-", phone, display_name),
     )
     player_id = cur.lastrowid
     apply_id_label(conn, player_id)
@@ -202,6 +204,93 @@ def reset_player_pin(player_id):
     if not updated:
         return jsonify({"success": False, "error": "Joueur introuvable"}), 404
     return jsonify({"success": True, "message": "Code PIN reinitialise. Le joueur devra en creer un a la prochaine connexion."})
+
+
+def _latest_group_scan(conn):
+    return conn.execute(
+        """
+        SELECT id, status, requested_at, completed_at, result_json
+        FROM bot_tasks
+        WHERE task_type = 'group_scan'
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+
+
+def _serialize_group_scan(row):
+    if not row:
+        return None
+    payload = {
+        "task_id": row["id"],
+        "status": row["status"],
+        "requested_at": row["requested_at"],
+        "completed_at": row["completed_at"],
+    }
+    if row["result_json"]:
+        try:
+            payload["result"] = json.loads(row["result_json"])
+        except json.JSONDecodeError:
+            payload["result"] = None
+    return payload
+
+
+@players_bp.route("/joueurs/scan-groupe", methods=["GET"])
+def group_scan_status():
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    row = _latest_group_scan(conn)
+    conn.close()
+    return jsonify({"success": True, "scan": _serialize_group_scan(row)})
+
+
+@players_bp.route("/joueurs/scan-groupe", methods=["POST"])
+def request_group_scan():
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    pending = conn.execute(
+        """
+        SELECT id, requested_at
+        FROM bot_tasks
+        WHERE task_type = 'group_scan' AND status = 'pending'
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    if pending:
+        conn.close()
+        return jsonify(
+            {
+                "success": True,
+                "queued": True,
+                "task_id": pending["id"],
+                "message": "Scan deja en cours.",
+            }
+        )
+
+    cur = conn.execute(
+        """
+        INSERT INTO bot_tasks (task_type, status)
+        VALUES ('group_scan', 'pending')
+        """
+    )
+    task_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "queued": True,
+            "task_id": task_id,
+            "message": "Scan lance. Le bot doit etre connecte (20-40 s).",
+        }
+    )
 
 
 @players_bp.route("/joueurs/<int:player_id>/reactivate", methods=["POST"])

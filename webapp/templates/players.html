@@ -13,6 +13,30 @@
 
   <p id="playersPageFeedback" class="form-feedback" aria-live="polite"></p>
 
+  <section class="group-scan-panel">
+    <header class="group-scan-head">
+      <div>
+        <strong>Nouveaux numeros (groupe WhatsApp)</strong>
+        <p class="metric-sub">Compare les membres du groupe avec la liste joueurs. Le bot doit etre connecte.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="scanGroupBtn">Scanner le groupe</button>
+    </header>
+    <p id="groupScanFeedback" class="form-feedback" aria-live="polite"></p>
+    <div id="groupScanSummary" class="metric-sub" hidden></div>
+    <div class="wallet-table-wrap" id="unknownNumbersWrap" hidden>
+      <table>
+        <thead>
+          <tr>
+            <th>Telephone</th>
+            <th>Nom WhatsApp</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="unknownNumbersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
   <form id="playerForm" class="event-form">
     <p class="metric-sub">Chaque joueur reçoit un identifiant (#1, #2, …). Le <strong>nom</strong> est visible uniquement par l’admin — les autres voient le numéro masqué.</p>
     <div class="form-row form-row-2">
@@ -21,9 +45,13 @@
         <input id="playerPhone" name="phone" class="form-input" placeholder="0663104773 ou 212663104773" required>
       </div>
       <div>
-        <label class="form-label" for="initialBalance">Solde initial (dh)</label>
-        <input id="initialBalance" name="initial_balance" class="form-input" type="number" min="0" step="0.01" value="0">
+        <label class="form-label" for="playerDisplayName">Nom (admin)</label>
+        <input id="playerDisplayName" name="display_name" class="form-input" placeholder="Ex. Youssef" maxlength="40">
       </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="initialBalance">Solde initial (dh)</label>
+      <input id="initialBalance" name="initial_balance" class="form-input" type="number" min="0" step="0.01" value="0">
     </div>
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">Ajouter le joueur</button>

@@ -23,6 +23,150 @@ function getPlayersIndex() {
 }
 
 const playersById = getPlayersIndex();
+let groupScanPollTimer = null;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function setScanFeedback(el, msg, isError = false) {
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle("is-error", isError);
+}
+
+function renderUnknownNumbers(unknown) {
+  const wrap = document.getElementById("unknownNumbersWrap");
+  const body = document.getElementById("unknownNumbersBody");
+  const summary = document.getElementById("groupScanSummary");
+  if (!wrap || !body || !summary) return;
+
+  if (!unknown?.length) {
+    wrap.hidden = true;
+    summary.hidden = false;
+    summary.textContent = "Tous les membres du groupe sont deja enregistres.";
+    return;
+  }
+
+  summary.hidden = false;
+  summary.textContent = `${unknown.length} numero(s) a ajouter.`;
+  wrap.hidden = false;
+  body.innerHTML = unknown
+    .map(
+      (entry) => `
+      <tr>
+        <td><code>${escapeHtml(entry.phone)}</code></td>
+        <td>${escapeHtml(entry.name || "—")}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-add-unknown" data-phone="${escapeHtml(entry.phone)}" data-name="${escapeHtml(entry.name || "")}">
+            Ajouter
+          </button>
+        </td>
+      </tr>`
+    )
+    .join("");
+
+  body.querySelectorAll(".btn-add-unknown").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const phoneInput = document.getElementById("playerPhone");
+      const displayNameInput = document.getElementById("playerDisplayName");
+      if (phoneInput) phoneInput.value = btn.dataset.phone || "";
+      if (displayNameInput) displayNameInput.value = btn.dataset.name || "";
+      phoneInput?.focus();
+      phoneInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setScanFeedback(
+        document.getElementById("groupScanFeedback"),
+        `Numero ${btn.dataset.phone} pre-rempli. Validez le formulaire ci-dessous.`
+      );
+    });
+  });
+}
+
+function applyGroupScanPayload(scan) {
+  const feedback = document.getElementById("groupScanFeedback");
+  if (!scan) {
+    setScanFeedback(feedback, "");
+    return;
+  }
+
+  if (scan.status === "pending") {
+    setScanFeedback(feedback, "Scan en cours… (le bot traite la demande)");
+    return;
+  }
+
+  if (scan.status === "error") {
+    const err = scan.result?.error || "Echec du scan";
+    setScanFeedback(feedback, err, true);
+    return;
+  }
+
+  if (scan.status === "done" && scan.result) {
+    const { groupName, totalParticipants, registeredCount, unknown } = scan.result;
+    setScanFeedback(
+      feedback,
+      `Dernier scan : ${groupName || "Groupe"} — ${unknown?.length || 0} nouveau(x) sur ${totalParticipants} (${registeredCount} deja en base).`
+    );
+    renderUnknownNumbers(unknown || []);
+  }
+}
+
+async function fetchGroupScanStatus() {
+  const res = await fetch("/joueurs/scan-groupe", { headers: adminHeaders() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseError(data, res.status));
+  return data.scan;
+}
+
+function stopGroupScanPolling() {
+  if (groupScanPollTimer) {
+    clearInterval(groupScanPollTimer);
+    groupScanPollTimer = null;
+  }
+}
+
+function startGroupScanPolling() {
+  stopGroupScanPolling();
+  groupScanPollTimer = setInterval(async () => {
+    try {
+      const scan = await fetchGroupScanStatus();
+      applyGroupScanPayload(scan);
+      if (scan?.status === "done" || scan?.status === "error") {
+        stopGroupScanPolling();
+      }
+    } catch (error) {
+      stopGroupScanPolling();
+      setScanFeedback(document.getElementById("groupScanFeedback"), error.message, true);
+    }
+  }, 3000);
+}
+
+document.getElementById("scanGroupBtn")?.addEventListener("click", async () => {
+  const feedback = document.getElementById("groupScanFeedback");
+  try {
+    setScanFeedback(feedback, "Demande envoyee au bot…");
+    const res = await fetch("/joueurs/scan-groupe", {
+      method: "POST",
+      headers: adminHeaders()
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(parseError(data, res.status));
+    setScanFeedback(feedback, data.message || "Scan lance.");
+    startGroupScanPolling();
+  } catch (error) {
+    setScanFeedback(feedback, error.message, true);
+  }
+});
+
+fetchGroupScanStatus()
+  .then((scan) => {
+    applyGroupScanPayload(scan);
+    if (scan?.status === "pending") startGroupScanPolling();
+  })
+  .catch(() => {});
 
 document.getElementById("playerForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -35,6 +179,7 @@ document.getElementById("playerForm")?.addEventListener("submit", async (event) 
       headers: adminHeaders(),
       body: JSON.stringify({
         phone: form.phone.value.trim(),
+        display_name: form.display_name?.value?.trim() || "",
         initial_balance: Number(form.initial_balance.value || 0)
       })
     });

@@ -658,6 +658,23 @@ body.matchcup26 .player-display-name {
   padding: 6px 8px;
 }
 
+body.matchcup26 .group-scan-panel {
+  margin: 1rem 0 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 70, 173, 0.14);
+  background: linear-gradient(180deg, #f7faff 0%, #fff 100%);
+}
+
+body.matchcup26 .group-scan-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
 body.matchcup26 .schedule-list {
   display: flex;
   flex-direction: column;

@@ -115,6 +115,26 @@ def ensure_db_indexes(db_path):
         conn.close()
 
 
+def ensure_bot_tasks_table(db_path):
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bot_tasks (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              task_type TEXT NOT NULL,
+              status TEXT DEFAULT 'pending',
+              requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              completed_at DATETIME,
+              result_json TEXT
+            )
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def ensure_match_media_table(db_path):
     conn = sqlite3.connect(db_path)
     try:
@@ -172,6 +192,7 @@ def create_app():
     ensure_player_columns(db_path)
     ensure_player_auth_columns(db_path)
     ensure_availability_columns(db_path)
+    ensure_bot_tasks_table(db_path)
     ensure_match_media_table(db_path)
     ensure_db_indexes(db_path)
 

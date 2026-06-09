@@ -83,6 +83,15 @@ CREATE TABLE IF NOT EXISTS match_goals (
   FOREIGN KEY (assist_player_id) REFERENCES players(id)
 );
 
+CREATE TABLE IF NOT EXISTS bot_tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_type TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at DATETIME,
+  result_json TEXT
+);
+
 CREATE TABLE IF NOT EXISTS match_motm_votes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   match_id INTEGER NOT NULL,
