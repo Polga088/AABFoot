@@ -81,15 +81,17 @@ def normalize_players_in_db(conn):
     rows = conn.execute("SELECT id, phone FROM players ORDER BY id ASC").fetchall()
     updated = 0
     for row in rows:
-        canonical = normalize_phone(row["phone"])
-        if not canonical or row["phone"] == canonical:
+        player_id = row[0] if isinstance(row, tuple) else row["id"]
+        phone = row[1] if isinstance(row, tuple) else row["phone"]
+        canonical = normalize_phone(phone)
+        if not canonical or phone == canonical:
             continue
         conflict = conn.execute(
             "SELECT id FROM players WHERE phone = ? AND id != ?",
-            (canonical, row["id"]),
+            (canonical, player_id),
         ).fetchone()
         if conflict:
             continue
-        conn.execute("UPDATE players SET phone = ? WHERE id = ?", (canonical, row["id"]))
+        conn.execute("UPDATE players SET phone = ? WHERE id = ?", (canonical, player_id))
         updated += 1
     return updated
