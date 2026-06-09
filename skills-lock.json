@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "aabfoot-project": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/aabfoot-project/SKILL.md",
+      "computedHash": "local"
+    },
+    "flask-python": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "flask-python/SKILL.md",
+      "computedHash": "7e55af409afc150c883017cbd8ee290d480b3f8013aab813db40868829707369"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/systematic-debugging/SKILL.md",
+      "computedHash": "7246fdd3a795fc3daff0af72044ca99bf836e4e6a46844742858786fdfb86488"
+    },
+    "verification-before-completion": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/verification-before-completion/SKILL.md",
+      "computedHash": "9b446f0c7fe1cfb560b1d34439523b1a76d5f177290007b2c053a1c749a4a8ba"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "ad5b1fc52807e9afa4635e59218a026b164dc58b6c3f41b0f7c644dcd6ccf572"
+    }
+  }
+}
