@@ -2,7 +2,7 @@ const { parseIntent } = require("./parser");
 const { helpMessage } = require("./responses");
 const { askOllama } = require("../llm/ollama");
 const { db } = require("../db/database");
-const { applyVoteCotisation } = require("../modules/matchCotisation");
+const { applyVoteCotisation, getCotisationAmount } = require("../modules/matchCotisation");
 const { canAcceptYesVote } = require("../modules/matchLimits");
 
 function isAdmin(player, phone) {
@@ -130,7 +130,7 @@ async function handleMessage(client, msg) {
       }
 
       case "cotisation_pay": {
-        const amount = Number(process.env.COTISATION_AMOUNT || 10);
+        const amount = getCotisationAmount(player.id);
         const tx = db.transaction(() => {
           db.prepare(
             "INSERT INTO transactions (player_id, amount, type, description) VALUES (?, ?, 'cotisation', ?)"

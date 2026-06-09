@@ -83,12 +83,19 @@ CREATE TABLE IF NOT EXISTS match_goals (
   FOREIGN KEY (assist_player_id) REFERENCES players(id)
 );
 
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS bot_tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   task_type TEXT NOT NULL,
   status TEXT DEFAULT 'pending',
   requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
+  payload_json TEXT,
   result_json TEXT
 );
 

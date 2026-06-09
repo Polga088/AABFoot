@@ -1,13 +1,17 @@
 import csv
 import io
+import json
 import os
 from datetime import datetime
 
 from flask import Blueprint, Response, current_app, jsonify, render_template, request
 
+from app_settings import get_default_cotisation, set_default_cotisation
 from auth_utils import admin_page_required
-from player_utils import apply_id_label, get_default_cotisation, player_cotisation_amount, player_public_label
+from player_utils import apply_id_label, player_cotisation_amount, player_public_label
 from routes.admin_utils import admin_guard, normalize_phone
+
+LOW_BALANCE_THRESHOLD = -20
 
 
 finance_bp = Blueprint("finance", __name__, url_prefix="/")
@@ -51,14 +55,18 @@ def finance_page():
         LIMIT 200
         """
     ).fetchall()
-    default_cotisation = get_default_cotisation()
+    default_cotisation = get_default_cotisation(conn)
     player_rows = []
+    low_balance_players = []
     for row in players:
         item = dict(row)
         item["label"] = player_public_label(item, is_admin=True)
         item["cotisation"] = player_cotisation_amount(item, default_cotisation)
         item["balance"] = round(float(item["balance"] or 0), 2)
+        item["uses_default_cotisation"] = item.get("cotisation_amount") is None
         player_rows.append(item)
+        if item["active"] and item["balance"] <= LOW_BALANCE_THRESHOLD:
+            low_balance_players.append(item)
 
     conn.close()
 
@@ -66,9 +74,111 @@ def finance_page():
         "finance.html",
         active_page="finance",
         players=player_rows,
+        low_balance_players=low_balance_players,
+        low_balance_threshold=LOW_BALANCE_THRESHOLD,
         transactions=[dict(row) for row in transactions],
         cotisation_amount=default_cotisation,
         admin_token_configured=bool(os.getenv("ADMIN_TOKEN", "").strip()),
+    )
+
+
+@finance_bp.route("/finance/settings/cotisation", methods=["PUT"])
+def update_default_cotisation():
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        amount = float(payload.get("amount"))
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "invalid_amount"}), 400
+    if amount <= 0:
+        return jsonify({"success": False, "error": "invalid_amount"}), 400
+
+    conn = current_app.get_db_connection()
+    set_default_cotisation(conn, amount)
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "default_cotisation": round(amount, 2)})
+
+
+def _queue_bot_task(conn, task_type, payload=None):
+    pending = conn.execute(
+        """
+        SELECT id FROM bot_tasks
+        WHERE task_type = ? AND status = 'pending'
+        ORDER BY id DESC LIMIT 1
+        """,
+        (task_type,),
+    ).fetchone()
+    if pending:
+        return pending["id"], True
+
+    cur = conn.execute(
+        """
+        INSERT INTO bot_tasks (task_type, status, payload_json)
+        VALUES (?, 'pending', ?)
+        """,
+        (task_type, json.dumps(payload) if payload else None),
+    )
+    return cur.lastrowid, False
+
+
+@finance_bp.route("/finance/bot/cotisation-report", methods=["POST"])
+def queue_cotisation_report():
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    conn = current_app.get_db_connection()
+    task_id, already = _queue_bot_task(conn, "cotisation_report")
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "task_id": task_id,
+            "queued": not already,
+            "message": "Tableau en file d'attente (envoi groupe WhatsApp sous ~20 s)."
+            if not already
+            else "Publication deja en cours.",
+        }
+    )
+
+
+@finance_bp.route("/finance/bot/wallet-reminder", methods=["POST"])
+def queue_wallet_reminder():
+    denied = admin_guard()
+    if denied:
+        return denied
+
+    payload = request.get_json(silent=True) or {}
+    player_ids = payload.get("player_ids") or []
+    if payload.get("player_id"):
+        player_ids = [payload["player_id"]]
+    player_ids = [int(pid) for pid in player_ids if pid]
+
+    if not player_ids:
+        return jsonify({"success": False, "error": "player_ids_required"}), 400
+
+    conn = current_app.get_db_connection()
+    task_id, already = _queue_bot_task(
+        conn,
+        "wallet_reminder",
+        {"player_ids": player_ids},
+    )
+    conn.commit()
+    conn.close()
+    return jsonify(
+        {
+            "success": True,
+            "task_id": task_id,
+            "queued": not already,
+            "message": f"Rappel envoye au bot pour {len(player_ids)} joueur(s)."
+            if not already
+            else "Rappel deja en cours.",
+        }
     )
 
 
@@ -89,7 +199,7 @@ def update_player_cotisation(player_id):
 
     if raw_amount is None or raw_amount == "":
         conn.execute("UPDATE players SET cotisation_amount = NULL WHERE id = ?", (player_id,))
-        effective = get_default_cotisation()
+        effective = get_default_cotisation(conn)
     else:
         try:
             amount = float(raw_amount)

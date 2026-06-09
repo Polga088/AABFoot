@@ -11,6 +11,7 @@ const {
 const { waitForConnected } = require("../modules/whatsapp");
 const { formatError } = require("../modules/whatsapp");
 const { processGroupScanQueue } = require("../modules/groupScanTask");
+const { processFinanceTaskQueue } = require("../modules/financeTasks");
 
 const POLL_RETRY_MS = 60000;
 const pollRetryAfter = new Map();
@@ -129,6 +130,7 @@ function startBackgroundJobs(client) {
     await processPollAdminQueue(client);
     await processLineupQueue(client);
     await processGroupScanQueue(client);
+    await processFinanceTaskQueue(client);
   };
 
   setInterval(tick, 20000);

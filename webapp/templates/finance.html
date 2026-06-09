@@ -7,11 +7,78 @@
     {% if admin_token_configured %}<span class="badge badge-green">Admin OK</span>{% endif %}
   </header>
   <p class="metric-sub">
-    Règle : vote <strong>Oui</strong> sur le sondage → débit du wallet (montant par joueur, défaut <strong>{{ cotisation_amount }} dh</strong>).
-    Vote <strong>Non</strong> ou <strong>Peut-être</strong> → solde inchangé.
-    Modifiez la cotisation individuelle dans le tableau ci-dessous.
+    Cotisation synchronisée automatiquement avec le bot (vote <strong>Oui</strong> sur le sondage).
+    Modifiez le montant global ou individuel ci-dessous — le bot lit la même base SQLite.
   </p>
 </section>
+
+<section class="card finance-settings-card">
+  <header class="card-title"><span>Cotisation globale (défaut)</span></header>
+  <form id="defaultCotisationForm" class="event-form form-row-inline">
+    <div>
+      <label class="form-label" for="defaultCotisation">Montant par match (dh)</label>
+      <input
+        id="defaultCotisation"
+        class="form-input"
+        type="number"
+        min="0.01"
+        step="0.01"
+        value="{{ '%.2f'|format(cotisation_amount) }}"
+        required
+      >
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <p id="defaultCotisationFeedback" class="form-feedback"></p>
+  </form>
+  <p class="metric-sub">Les joueurs sans montant personnalisé utilisent cette valeur (synchro bot immédiate).</p>
+</section>
+
+<section class="card finance-bot-card">
+  <header class="card-title"><span>Actions WhatsApp (bot)</span></header>
+  <div class="form-actions">
+    <button type="button" class="btn btn-primary" id="publishCotisationReportBtn">
+      Publier le tableau cotisations au groupe
+    </button>
+  </div>
+  <p id="cotisationReportFeedback" class="form-feedback" aria-live="polite"></p>
+  <p class="metric-sub">Envoie un récapitulatif ID / cotisation / solde dans le groupe équipe.</p>
+</section>
+
+{% if low_balance_players %}
+<section class="card finance-alert-card">
+  <header class="card-title">
+    <span>Soldes critiques (≤ {{ low_balance_threshold }} dh)</span>
+    <span class="badge badge-red">{{ low_balance_players|length }}</span>
+  </header>
+  <div class="form-actions" style="margin-bottom:10px;">
+    <button type="button" class="btn btn-primary" id="remindAllLowBalanceBtn">
+      Rappeler tous par WhatsApp
+    </button>
+  </div>
+  <div class="wallet-table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Nom</th><th>Solde</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for p in low_balance_players %}
+        <tr>
+          <td><strong>#{{ p.id }}</strong></td>
+          <td>{{ p.label }}</td>
+          <td class="amount-minus">{{ "%.2f"|format(p.balance) }} dh</td>
+          <td>
+            <button type="button" class="btn btn-sm btn-wallet-remind" data-player-id="{{ p.id }}">
+              Rappeler
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="metric-sub">Le bot envoie un message privé pour alimenter le wallet.</p>
+</section>
+{% endif %}
 
 <section class="card">
   <header class="card-title"><span>Alimenter un solde</span></header>
@@ -62,7 +129,7 @@
 </section>
 
 <section class="card">
-  <header class="card-title"><span>Soldes joueurs</span></header>
+  <header class="card-title"><span>Soldes & cotisations par joueur</span></header>
   <div class="wallet-table-wrap">
     <table>
       <thead>
@@ -70,7 +137,7 @@
       </thead>
       <tbody>
         {% for p in players %}
-        <tr data-player-id="{{ p.id }}">
+        <tr data-player-id="{{ p.id }}" data-uses-default="{{ '1' if p.uses_default_cotisation else '0' }}">
           <td><strong>#{{ p.id }}</strong></td>
           <td>{{ p.label }}</td>
           <td>{{ p.phone }}</td>
@@ -80,15 +147,19 @@
                 type="number"
                 class="form-input cotisation-input"
                 data-player-id="{{ p.id }}"
+                data-custom="{{ '0' if p.uses_default_cotisation else '1' }}"
                 min="0.01"
                 step="0.01"
                 value="{{ '%.2f'|format(p.cotisation) }}"
-                title="Vide = défaut {{ cotisation_amount }} dh"
+                title="Effacer et valider pour revenir au défaut global"
               >
               <span class="metric-sub">dh</span>
+              {% if p.uses_default_cotisation %}
+              <span class="badge badge-blue cotisation-default-badge">défaut</span>
+              {% endif %}
             </div>
           </td>
-          <td class="{% if p.balance >= 10 %}amount-plus{% else %}amount-minus{% endif %}">{{ "%.2f"|format(p.balance) }} dh</td>
+          <td class="{% if p.balance >= 10 %}amount-plus{% elif p.balance <= low_balance_threshold %}amount-minus{% else %}{% endif %}">{{ "%.2f"|format(p.balance) }} dh</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -117,6 +188,8 @@
     </table>
   </div>
 </section>
+
+<script id="lowBalanceIds" type="application/json">{{ low_balance_players | map(attribute='id') | list | tojson }}</script>
 {% endblock %}
 
 {% block scripts %}

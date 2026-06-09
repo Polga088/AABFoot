@@ -1,9 +1,6 @@
 const { db } = require("../db/database");
 const wallet = require("./wallet");
-
-function getDefaultCotisationAmount() {
-  return Number(process.env.COTISATION_AMOUNT || 10);
-}
+const { getDefaultCotisationAmount } = require("./appSettings");
 
 function getCotisationAmount(playerId) {
   const defaultAmount = getDefaultCotisationAmount();
@@ -103,5 +100,6 @@ function applyVoteCotisation(playerId, matchId, newStatus) {
 
 module.exports = {
   getCotisationAmount,
+  getDefaultCotisationAmount,
   applyVoteCotisation
 };

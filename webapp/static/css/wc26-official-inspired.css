@@ -666,6 +666,25 @@ body.matchcup26 .group-scan-panel {
   background: linear-gradient(180deg, #f7faff 0%, #fff 100%);
 }
 
+body.matchcup26 .form-row-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+body.matchcup26 .finance-alert-card {
+  border-left: 4px solid #d71920;
+}
+
+body.matchcup26 .finance-bot-card {
+  border-left: 4px solid #0046ad;
+}
+
+body.matchcup26 .cotisation-default-badge {
+  font-size: 10px;
+}
+
 body.matchcup26 .group-scan-head {
   display: flex;
   align-items: flex-start;

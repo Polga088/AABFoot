@@ -32,7 +32,11 @@ def player_public_label(player, is_admin=False):
     return player_id_label(player)
 
 
-def get_default_cotisation():
+def get_default_cotisation(conn=None):
+    if conn is not None:
+        from app_settings import get_default_cotisation as db_default
+
+        return db_default(conn)
     return float(os.getenv("COTISATION_AMOUNT", "10") or 10)
 
 

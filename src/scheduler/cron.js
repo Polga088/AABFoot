@@ -7,6 +7,7 @@ const { notifyLineupPlayers } = require("../modules/notifications");
 const { sendMatchPoll } = require("../modules/poll");
 const { resolveGroupChatId } = require("../modules/groups");
 const { checkLowBalances } = require("../modules/wallet");
+const { getDefaultCotisationAmount } = require("../modules/appSettings");
 
 function getPendingPlayers(matchId) {
   return db
@@ -42,7 +43,7 @@ async function getGroupId(client) {
 }
 
 function startScheduler(client) {
-  const cotisationAmount = Number(process.env.COTISATION_AMOUNT || 10);
+  const cotisationAmount = getDefaultCotisationAmount();
 
   // 1) Lundi 08h00: cotisation hebdo (desactivee si COTISATION_ON_VOTE=1, defaut)
   const cotisationOnVote = process.env.COTISATION_ON_VOTE !== "0";

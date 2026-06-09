@@ -126,10 +126,25 @@ def ensure_bot_tasks_table(db_path):
               status TEXT DEFAULT 'pending',
               requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               completed_at DATETIME,
+              payload_json TEXT,
               result_json TEXT
             )
             """
         )
+        cols = {row[0] for row in conn.execute("SELECT name FROM pragma_table_info('bot_tasks')").fetchall()}
+        if "payload_json" not in cols:
+            conn.execute("ALTER TABLE bot_tasks ADD COLUMN payload_json TEXT")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def ensure_app_settings_table(db_path):
+    conn = sqlite3.connect(db_path)
+    try:
+        from app_settings import ensure_app_settings_table as ensure_table
+
+        ensure_table(conn)
         conn.commit()
     finally:
         conn.close()
@@ -193,6 +208,7 @@ def create_app():
     ensure_player_auth_columns(db_path)
     ensure_availability_columns(db_path)
     ensure_bot_tasks_table(db_path)
+    ensure_app_settings_table(db_path)
     ensure_match_media_table(db_path)
     ensure_db_indexes(db_path)
 

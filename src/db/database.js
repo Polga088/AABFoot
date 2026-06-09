@@ -132,7 +132,18 @@ function initDatabase() {
   ensurePlayerColumns();
   ensureAvailabilityColumns();
   ensureBotTasksTable();
+  const { ensureAppSettingsTable } = require("../modules/appSettings");
+  ensureAppSettingsTable();
+  ensureBotTasksPayloadColumn();
   seedPlayersIfEmpty();
+}
+
+function ensureBotTasksPayloadColumn() {
+  const rows = db.prepare("SELECT name FROM pragma_table_info('bot_tasks')").all();
+  const columns = new Set(rows.map((row) => row.name));
+  if (!columns.has("payload_json")) {
+    db.exec("ALTER TABLE bot_tasks ADD COLUMN payload_json TEXT");
+  }
 }
 
 module.exports = {

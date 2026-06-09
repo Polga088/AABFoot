@@ -1,5 +1,7 @@
 const { db } = require("../db/database");
 const wallet = require("./wallet");
+const { getDefaultCotisationAmount } = require("./appSettings");
+const { getCotisationAmount } = require("./matchCotisation");
 
 function getWeekNumber(date = new Date()) {
   const value = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -10,7 +12,7 @@ function getWeekNumber(date = new Date()) {
 }
 
 function processWeeklyCotisation() {
-  const amount = Number(process.env.COTISATION_AMOUNT || 10);
+  const defaultAmount = getDefaultCotisationAmount();
   const week = getWeekNumber();
   const players = db
     .prepare(
@@ -29,6 +31,7 @@ function processWeeklyCotisation() {
   };
 
   for (const player of players) {
+    const amount = getCotisationAmount(player.id) || defaultAmount;
     try {
       wallet.debit(player.id, amount, `Cotisation semaine ${week}`);
       result.success.push(player.name);
