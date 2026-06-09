@@ -12,14 +12,14 @@ function findPlayerByPhone(rawPhone) {
 }
 
 function ensurePlayerFromWhatsApp(phone, displayName) {
-  const existing = findPlayerByPhone(phone);
-  if (existing) {
-    return existing;
-  }
-
   const normalized = normalizePhone(phone);
   if (!normalized) {
     throw new Error("Numero WhatsApp invalide.");
+  }
+
+  const existing = findPlayerByPhone(normalized);
+  if (existing) {
+    return existing;
   }
 
   const safeName = (displayName || "Joueur").trim().slice(0, 80) || "Joueur";
@@ -32,6 +32,49 @@ function ensurePlayerFromWhatsApp(phone, displayName) {
   });
 
   return tx();
+}
+
+async function resolveVoterPhone(client, voterId) {
+  if (!voterId) return null;
+
+  const direct = normalizePhone(voterId);
+  if (direct) return direct;
+
+  if (client?.getContactLidAndPhone) {
+    try {
+      const mapped = await client.getContactLidAndPhone([voterId]);
+      const entry = mapped?.[0];
+      if (entry?.pn) {
+        const fromPn = normalizePhone(entry.pn);
+        if (fromPn) return fromPn;
+      }
+    } catch (error) {
+      console.warn("Mapping LID→telephone echoue:", error.message);
+    }
+  }
+
+  try {
+    const contact = await client.getContactById(voterId);
+    const candidates = [
+      contact?.number,
+      contact?.id?.server === "c.us" ? contact?.id?.user : null,
+      contact?.id?._serialized
+    ];
+    for (const candidate of candidates) {
+      const normalized = normalizePhone(candidate);
+      if (normalized) return normalized;
+    }
+  } catch (error) {
+    console.warn("Contact vote introuvable:", error.message);
+  }
+
+  return null;
+}
+
+async function findRegisteredPlayerForVote(client, voterId) {
+  const phone = await resolveVoterPhone(client, voterId);
+  if (!phone) return null;
+  return findPlayerByPhone(phone);
 }
 
 async function resolveVoterName(client, voterId) {
@@ -48,5 +91,7 @@ module.exports = {
   getPhoneLookupVariants,
   findPlayerByPhone,
   ensurePlayerFromWhatsApp,
+  resolveVoterPhone,
+  findRegisteredPlayerForVote,
   resolveVoterName
 };

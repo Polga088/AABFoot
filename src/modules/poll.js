@@ -1,6 +1,6 @@
 const { Poll } = require("whatsapp-web.js");
 const { db } = require("../db/database");
-const { ensurePlayerFromWhatsApp, resolveVoterName } = require("./players");
+const { findRegisteredPlayerForVote } = require("./players");
 const { setAvailability } = require("./match");
 const { applyVoteCotisation } = require("./matchCotisation");
 const { canAcceptYesVote, formatMaxPlayers } = require("./matchLimits");
@@ -127,8 +127,24 @@ async function handlePollVote(client, vote) {
   if (status === "pending") return true;
 
   const voterId = vote.voter;
-  const displayName = await resolveVoterName(client, voterId);
-  const player = ensurePlayerFromWhatsApp(voterId, displayName);
+  const player = await findRegisteredPlayerForVote(client, voterId);
+  if (!player) {
+    console.warn(`Vote ignore — joueur non enregistre (voter=${voterId})`);
+    try {
+      await client.sendMessage(
+        voterId,
+        [
+          "⚠️ *Vote non pris en compte*",
+          "Vous n'etes pas encore dans la liste de l'equipe.",
+          "Demandez a l'admin de vous ajouter (page *Joueurs* sur la webapp),",
+          "puis revotez sur le sondage."
+        ].join("\n")
+      );
+    } catch (error) {
+      console.warn("Impossible d'avertir le votant non enregistre:", error.message);
+    }
+    return true;
+  }
 
   if (status === "yes") {
     const capacity = canAcceptYesVote(match, player.id);

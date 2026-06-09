@@ -1,6 +1,12 @@
 import re
 
 
+def is_valid_player_phone_digits(digits):
+    if not digits:
+        return False
+    return bool(re.fullmatch(r"212[67]\d{8}", digits))
+
+
 def to_canonical_digits(raw_phone):
     digits = re.sub(r"\D", "", raw_phone or "")
     if not digits:
@@ -8,13 +14,13 @@ def to_canonical_digits(raw_phone):
 
     if len(digits) == 10 and digits.startswith("0"):
         digits = f"212{digits[1:]}"
-    elif len(digits) == 9 and digits.startswith("6"):
+    elif len(digits) == 9 and digits[0] in "67":
         digits = f"212{digits}"
 
-    if digits.startswith("212") and len(digits) >= 12:
-        return digits[:12]
+    if digits.startswith("212") and len(digits) > 12:
+        digits = digits[:12]
 
-    return digits
+    return digits if is_valid_player_phone_digits(digits) else ""
 
 
 def normalize_phone(raw_phone):
@@ -24,7 +30,7 @@ def normalize_phone(raw_phone):
 
     if "@" in value:
         digits = to_canonical_digits(value.split("@", 1)[0])
-        return f"{digits}@c.us" if digits else value
+        return f"{digits}@c.us" if digits else ""
 
     digits = to_canonical_digits(value)
     if not digits:

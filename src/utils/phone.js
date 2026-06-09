@@ -6,31 +6,34 @@ function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function isValidPlayerPhoneDigits(digits) {
+  if (!digits) return false;
+  // Maroc WhatsApp : 212 + 9 chiffres (06/07…)
+  return /^212[67]\d{8}$/.test(digits);
+}
+
 function toCanonicalDigits(raw) {
   let digits = digitsOnly(raw);
   if (!digits) return "";
 
   if (digits.length === 10 && digits.startsWith("0")) {
     digits = `212${digits.slice(1)}`;
-  } else if (digits.length === 9 && digits.startsWith("6")) {
+  } else if (digits.length === 9 && (digits.startsWith("6") || digits.startsWith("7"))) {
     digits = `212${digits}`;
   }
 
-  if (digits.startsWith("212") && digits.length >= 12) {
-    return digits.slice(0, 12);
+  if (digits.startsWith("212") && digits.length > 12) {
+    digits = digits.slice(0, 12);
   }
 
-  return digits;
+  return isValidPlayerPhoneDigits(digits) ? digits : "";
 }
 
 function normalizePhone(phone) {
   if (!phone) return "";
   const value = String(phone).trim();
-  if (value.includes("@")) {
-    const digits = toCanonicalDigits(value.replace(/@.*/, ""));
-    return digits ? `${digits}@c.us` : value;
-  }
-  const digits = toCanonicalDigits(value);
+  const rawId = value.includes("@") ? value.replace(/@.*/, "") : value;
+  const digits = toCanonicalDigits(rawId);
   if (!digits) return "";
   return `${digits}@c.us`;
 }
@@ -65,6 +68,7 @@ function formatLocalPhone(phone) {
 
 module.exports = {
   digitsOnly,
+  isValidPlayerPhoneDigits,
   toCanonicalDigits,
   normalizePhone,
   getPhoneLookupVariants,
