@@ -19,6 +19,7 @@ npx skills add obra/superpowers@systematic-debugging -a cursor -y
 | **verification-before-completion** | [obra/superpowers](https://skills.sh/obra/superpowers/verification-before-completion) | Avant commit/push — vérifier que le fix fonctionne vraiment |
 | **webapp-testing** | [anthropics/skills](https://skills.sh/anthropics/skills/webapp-testing) | Tests Playwright de la webapp Flask (`/connexion`, `/finance`, etc.) |
 | **flask-python** | [mindrally/skills](https://skills.sh/mindrally/skills/flask-python) | Nouvelles routes, blueprints, patterns Flask |
+| **ui-ux-pro-max** | [nextlevelbuilder/ui-ux-pro-max-skill](https://skills.sh/nextlevelbuilder/ui-ux-pro-max-skill/ui-ux-pro-max) | UI/UX, animations, accessibilité, modernisation thème |
 
 ## Emplacement
 
@@ -28,7 +29,8 @@ npx skills add obra/superpowers@systematic-debugging -a cursor -y
 ├── systematic-debugging/
 ├── verification-before-completion/
 ├── webapp-testing/
-└── flask-python/
+├── flask-python/
+└── ui-ux-pro-max/
 ```
 
 ## Ajouter une skill
